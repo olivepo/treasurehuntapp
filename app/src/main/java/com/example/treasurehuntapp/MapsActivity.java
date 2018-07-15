@@ -5,11 +5,13 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -20,30 +22,40 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks {
 
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION =1;
     private GoogleMap mMap;
 
     private FusedLocationProviderClient mFusedLocationClient;
 
-    private double lastknownLatitude;
-
-    private double lastknownLongitude;
+    private Location mLastLocation;
+    private GoogleApiClient mGoogleApiClient;
 
     @SuppressLint("MissingPermission")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+        checkLocationPermission();
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        /*mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addApi(LocationServices.API)
+                .build();*/
 
 
 
+    }
+
+    private void checkLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Permission is not granted
             // Permission is not grantedACCESS_FINE_LOCATION
@@ -80,27 +92,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
 
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        // Got last known location. In some rare situations this can be null.
-                        if (location != null) {
-                            // Logic to handle location object
-                            lastknownLatitude = location.getLatitude();
-                            lastknownLongitude = location.getLongitude();
 
-                        }
-                    }
-                });
+            mMap = googleMap;
+            setUpMap();
 
-        // Add a marker in Sydney and move the camera
-        LatLng lastLocation = new LatLng(lastknownLatitude, lastknownLongitude);
-        mMap.addMarker(new MarkerOptions().position(lastLocation).title("Marker in lastLocation"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(lastLocation));
     }
 
 
@@ -115,20 +111,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-                    mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-                    mFusedLocationClient.getLastLocation()
-                            .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                                @Override
-                                public void onSuccess(Location location) {
-                                    // Got last known location. In some rare situations this can be null.
-                                    if (location != null) {
-                                        // Logic to handle location object
-                                        lastknownLatitude = location.getLatitude();
-                                        lastknownLongitude = location.getLongitude();
-
-                                    }
-                                }
-                            });
+                   getLastLocation();
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
@@ -139,5 +122,59 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // other 'case' lines to check for other
             // permissions this app might request.
         }
+    }
+
+
+    @SuppressLint("MissingPermission")
+    private void setUpMap() {
+
+        getLastLocation();
+
+
+    }
+
+    @SuppressLint("MissingPermission")
+    private void getLastLocation() {
+        mFusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                // Got last known location. In some rare situations this can be null.
+                if (location != null) {
+                    // Logic to handle location object
+                    mLastLocation = location;
+                }
+                if (mLastLocation != null) {
+
+                    LatLng successLastLatLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+
+                    mMap.addMarker(new MarkerOptions().position(successLastLatLng).title("Last location"));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(successLastLatLng,17));
+
+
+                    Toast.makeText(MapsActivity.this,"Last Location  : " + successLastLatLng.toString(),Toast.LENGTH_LONG).show();
+
+
+                }
+                else
+                {
+                    LatLng failedLastLatLng = new LatLng(48.8666846, 2.3553182);
+                    Toast.makeText(MapsActivity.this,"Nw Location  : " + failedLastLatLng.toString(),Toast.LENGTH_LONG ).show();
+
+                    mMap.addMarker(new MarkerOptions().position(failedLastLatLng).title("Le CNAM"));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(failedLastLatLng,17));
+
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
     }
 }
