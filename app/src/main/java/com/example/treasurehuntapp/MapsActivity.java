@@ -3,6 +3,7 @@ package com.example.treasurehuntapp;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -38,6 +39,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION =1;
     private static final int REQUEST_CHECK_SETTINGS =2 ;
     private static final String REQUESTING_LOCATION_UPDATES_KEY ="";
+    private static final int LOCATION =2 ;
     private GoogleMap mMap;
 
     private FusedLocationProviderClient mFusedLocationClient;
@@ -60,17 +62,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        defLocUpdateCallBack();
-
         //restore save values
         updateValuesFromBundle(savedInstanceState);
 
-        /*mGoogleApiClient = new GoogleApiClient.Builder(this)
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addApi(LocationServices.API)
-                .build();*/
+                .build();
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        defLocUpdateCallBack();
 
 
 
@@ -86,6 +87,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 for (Location location : locationResult.getLocations()) {
                     // Update UI with location data
                     // ...
+                    LatLng updateLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    mMap.addMarker(new MarkerOptions().position(updateLatLng).title("location update"));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(updateLatLng,17));
                 }
             };
         };
@@ -238,6 +242,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // All location settings are satisfied. The client can initialize
                 // location requests here.
                 // ...
+                Toast.makeText(MapsActivity.this,"succes  : " + LocationRequest.PRIORITY_HIGH_ACCURACY,Toast.LENGTH_LONG ).show();
             }
         });
 
@@ -250,6 +255,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     try {
                         // Show the dialog by calling startResolutionForResult(),
                         // and check the result in onActivityResult().
+                        Toast.makeText(MapsActivity.this,"failure  : " + e.toString(),Toast.LENGTH_LONG ).show();
                         ResolvableApiException resolvable = (ResolvableApiException) e;
                         resolvable.startResolutionForResult(MapsActivity.this,
                                 REQUEST_CHECK_SETTINGS);
@@ -308,4 +314,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void updateUI() {
     }
 
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == LOCATION) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                mRequestingLocationUpdates=true;
+                // The user picked a contact.
+                // The Intent's data Uri identifies which contact was selected.
+
+                // Do something with the contact here (bigger example below)
+
+            }
+            else {
+                mRequestingLocationUpdates=false;
+            }
+        }
+    }
 }
