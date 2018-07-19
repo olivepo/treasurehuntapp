@@ -12,6 +12,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -34,12 +36,12 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, View.OnClickListener {
 
-    private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION =1;
-    private static final int REQUEST_CHECK_SETTINGS =2 ;
-    private static final String REQUESTING_LOCATION_UPDATES_KEY ="";
-    private static final int LOCATION =2 ;
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final int REQUEST_CHECK_SETTINGS = 2;
+    private static final String REQUESTING_LOCATION_UPDATES_KEY = "";
+    private static final int LOCATION = 2;
     private GoogleMap mMap;
 
     private FusedLocationProviderClient mFusedLocationClient;
@@ -48,7 +50,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest = new LocationRequest();
     private LocationCallback mLocationCallback;
-    private boolean mRequestingLocationUpdates=true;
+    private boolean mRequestingLocationUpdates = true;
 
     @SuppressLint("MissingPermission")
     @Override
@@ -57,6 +59,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         checkLocationPermission();
         setContentView(R.layout.activity_maps);
+
+        Button create = (Button) findViewById(R.id.createButton);
+        create.setOnClickListener(this);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -73,9 +79,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         defLocUpdateCallBack();
 
-
-
     }
+
 
     private void defLocUpdateCallBack() {
         mLocationCallback = new LocationCallback() {
@@ -89,9 +94,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     // ...
                     LatLng updateLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                     mMap.addMarker(new MarkerOptions().position(updateLatLng).title("location update"));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(updateLatLng,17));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(updateLatLng, 17));
                 }
-            };
+            }
+
+            ;
         };
     }
 
@@ -134,8 +141,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
 
 
-            mMap = googleMap;
-            setUpMap();
+        mMap = googleMap;
+        setUpMap();
 
     }
 
@@ -151,7 +158,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-                   getLastLocation();
+                    getLastLocation();
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
@@ -189,20 +196,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     LatLng successLastLatLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
 
                     mMap.addMarker(new MarkerOptions().position(successLastLatLng).title("Last location"));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(successLastLatLng,17));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(successLastLatLng, 17));
 
 
-                    Toast.makeText(MapsActivity.this,"Last Location  : " + successLastLatLng.toString(),Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapsActivity.this, "Last Location  : " + successLastLatLng.toString(), Toast.LENGTH_LONG).show();
 
 
-                }
-                else
-                {
+                } else {
                     LatLng failedLastLatLng = new LatLng(48.8666846, 2.3553182);
-                    Toast.makeText(MapsActivity.this,"Nw Location  : " + failedLastLatLng.toString(),Toast.LENGTH_LONG ).show();
+                    Toast.makeText(MapsActivity.this, "Nw Location  : " + failedLastLatLng.toString(), Toast.LENGTH_LONG).show();
 
                     mMap.addMarker(new MarkerOptions().position(failedLastLatLng).title("Le CNAM"));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(failedLastLatLng,17));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(failedLastLatLng, 17));
 
                 }
             }
@@ -226,8 +231,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return mLocationRequest;
     }
 
-    private void getCurrentLocationSettings(){
-        mLocationRequest=createLocationRequest();
+    private void getCurrentLocationSettings() {
+        mLocationRequest = createLocationRequest();
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(mLocationRequest);
@@ -242,7 +247,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // All location settings are satisfied. The client can initialize
                 // location requests here.
                 // ...
-                Toast.makeText(MapsActivity.this,"succes  : " + LocationRequest.PRIORITY_HIGH_ACCURACY,Toast.LENGTH_LONG ).show();
+                Toast.makeText(MapsActivity.this, "succes  : " + LocationRequest.PRIORITY_HIGH_ACCURACY, Toast.LENGTH_LONG).show();
             }
         });
 
@@ -255,7 +260,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     try {
                         // Show the dialog by calling startResolutionForResult(),
                         // and check the result in onActivityResult().
-                        Toast.makeText(MapsActivity.this,"failure  : " + e.toString(),Toast.LENGTH_LONG ).show();
+                        Toast.makeText(MapsActivity.this, "failure  : " + e.toString(), Toast.LENGTH_LONG).show();
                         ResolvableApiException resolvable = (ResolvableApiException) e;
                         resolvable.startResolutionForResult(MapsActivity.this,
                                 REQUEST_CHECK_SETTINGS);
@@ -321,16 +326,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (requestCode == LOCATION) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
-                mRequestingLocationUpdates=true;
+                mRequestingLocationUpdates = true;
                 // The user picked a contact.
                 // The Intent's data Uri identifies which contact was selected.
 
                 // Do something with the contact here (bigger example below)
 
-            }
-            else {
-                mRequestingLocationUpdates=false;
+            } else {
+                mRequestingLocationUpdates = false;
             }
         }
+    }
+
+
+    public void onClick(View view) {
+
+        switch (view.getId()) {
+            case (R.id.createButton):
+                create(view);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    private void create(View view) {
+        //TODO appel creation de chasse au trésor
+
+    }
+
+    /**
+     * Called when pointer capture is enabled or disabled for the current window.
+     *
+     * @param hasCapture True if the window has pointer capture.
+     */
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
     }
 }
