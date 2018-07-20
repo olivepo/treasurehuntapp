@@ -42,6 +42,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int REQUEST_CHECK_SETTINGS = 2;
     private static final String REQUESTING_LOCATION_UPDATES_KEY = "";
     private static final int LOCATION = 2;
+    private static final int PERMISSION_REQUEST_CALL_CREATE_CODE = 100;
+    private static final int CALL_REQUEST = 99;
     private GoogleMap mMap;
 
     private FusedLocationProviderClient mFusedLocationClient;
@@ -353,8 +355,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void create(View view) {
         //TODO appel creation de chasse au trésor
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (checkSelfPermission("composant.permission.CALL_CREATE") != PackageManager.PERMISSION_GRANTED) {
+                String[] permissions = {"composant.permission.CALL_CREATE"};
+                requestPermissions(permissions, PERMISSION_REQUEST_CALL_CREATE_CODE);
+                Context context = getApplicationContext();
+                Toast toast = Toast.makeText(context, "L'activité ComposantLogin n'est pas enregistrée !", Toast.LENGTH_SHORT);
+                toast.show();
+                return;
+            }
+        }
+
+        Intent intent = new Intent();
+        intent.setAction("createhuntcomposant.CREATE");
+        if(intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent,CALL_REQUEST);
+        }
 
     }
+
 
     /**
      * Called when pointer capture is enabled or disabled for the current window.
