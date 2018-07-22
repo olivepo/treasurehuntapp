@@ -4,7 +4,7 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.example.treasurehuntapp"
-        minSdkVersion 23
+        minSdkVersion 26
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -19,11 +19,38 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.google.android.gms:play-services-maps:15.0.1'
     implementation 'com.google.android.gms:play-services-location:15.0.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation files('libs/jackson-annotations-2.8.10.jar')
+    implementation files('libs/aopalliance-repackaged-2.5.0-b42.jar')
+    implementation files('libs/asm-all-3.3.1.jar')
+    implementation files('libs/hk2-api-2.5.0-b42.jar')
+    implementation files('libs/hk2-locator-2.5.0-b42.jar')
+    implementation files('libs/hk2-utils-2.5.0-b42.jar')
+    implementation files('libs/jackson-core-2.8.10.jar')
+    implementation files('libs/jackson-databind-2.8.10.jar')
+    implementation files('libs/jackson-module-jaxb-annotations-2.8.10.jar')
+    implementation files('libs/javassist-3.22.0-CR2.jar')
+    implementation files('libs/javax.annotation-api-1.2.jar')
+    implementation files('libs/javax.inject-1.jar')
+    implementation files('libs/javax.inject-2.5.0-b42.jar')
+    implementation files('libs/javax.ws.rs-api-2.1.jar')
+    implementation files('libs/jersey-client-2.27.jar')
+    implementation files('libs/jersey-common-2.27.jar')
+    implementation files('libs/jersey-container-servlet-2.27.jar')
+    implementation files('libs/jersey-container-servlet-core-2.27.jar')
+    implementation files('libs/jersey-entity-filtering-2.27.jar')
+    implementation files('libs/jersey-hk2-2.27.jar')
+    implementation files('libs/jersey-media-jaxb-2.27.jar')
+    implementation files('libs/jersey-media-json-jackson-2.27.jar')
+    implementation files('libs/jersey-server-2.27.jar')
+    implementation files('libs/junit-3.8.2.jar')
+    implementation files('libs/osgi-resource-locator-1.0.1.jar')
+    implementation files('libs/validation-api-1.1.0.Final.jar')
+    implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'
 }
