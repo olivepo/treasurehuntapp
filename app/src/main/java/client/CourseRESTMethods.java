@@ -11,8 +11,8 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
-import model.Course;
-import model.Courses;
+import treasurehunt.model.Course;
+import treasurehunt.model.Courses;
 
 
 public class CourseRESTMethods {

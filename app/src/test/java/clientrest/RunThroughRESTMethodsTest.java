@@ -8,9 +8,9 @@ import java.util.List;
 import org.junit.Test;
 
 import client.RunThroughRESTMethods;
-import model.RunThrough;
-import model.StepComposite;
-import model.StepLeaf;
+import treasurehunt.model.RunThrough;
+import treasurehunt.model.StepComposite;
+import treasurehunt.model.StepLeaf;
 
 
 public class RunThroughRESTMethodsTest {

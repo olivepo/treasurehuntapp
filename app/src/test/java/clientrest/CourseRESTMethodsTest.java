@@ -7,13 +7,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import client.CourseRESTMethods;
-import model.AnswerChoice;
-import model.Course;
-import model.Riddle;
-import model.StepComposite;
-import model.StepCompositeFactory;
-import model.StepLeaf;
-import model.StepLeafFactory;
+import treasurehunt.model.AnswerChoice;
+import treasurehunt.model.Course;
+import treasurehunt.model.Riddle;
+import treasurehunt.model.StepComposite;
+import treasurehunt.model.StepCompositeFactory;
+import treasurehunt.model.StepLeaf;
+import treasurehunt.model.StepLeafFactory;
 
 
 public class CourseRESTMethodsTest {

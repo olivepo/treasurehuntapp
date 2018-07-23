@@ -12,8 +12,8 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
-import model.RunThrough;
-import model.RunThroughs;
+import treasurehunt.model.RunThrough;
+import treasurehunt.model.RunThroughs;
 
 
 public class RunThroughRESTMethods {

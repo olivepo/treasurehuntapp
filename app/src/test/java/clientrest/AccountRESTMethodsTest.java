@@ -5,7 +5,7 @@ import org.junit.*;
 import java.util.List;
 
 import client.AccountRESTMethods;
-import model.Account;
+import treasurehunt.model.Account;
 
 
 public class AccountRESTMethodsTest {

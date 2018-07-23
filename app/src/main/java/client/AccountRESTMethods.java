@@ -11,8 +11,8 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
-import model.Account;
-import model.Accounts;
+import treasurehunt.model.Account;
+import treasurehunt.model.Accounts;
 
 
 public class AccountRESTMethods {
