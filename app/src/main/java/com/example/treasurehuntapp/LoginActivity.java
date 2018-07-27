@@ -25,6 +25,17 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,17 +54,23 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private UserLoginTask mAuthTask = null;
 
+    private static String baseUrl = Configuration.baseUrl+"accountService/getAccount/";
+
     // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private RequestQueue mVolleyRequestQueue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         // mise à jour configuration Api REST
-        Configuration.baseUrl = "35.205.189.193";
+        Configuration.baseUrl = "35.234.90.191/TreasureHuntApiRestServer/api/";
+        baseUrl=Configuration.baseUrl+"accountService/getAccount/";
+
+        mVolleyRequestQueue = Volley.newRequestQueue(getApplicationContext());
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
@@ -66,6 +83,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
                     attemptLogin();
+
+
+
                     return true;
                 }
                 return false;
@@ -131,8 +151,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
+            jsonArrayRequest(baseUrl+email);
+         //   mAuthTask = new UserLoginTask(email, password);
+         //   mAuthTask.execute((Void) null);
         }
     }
 
@@ -285,5 +306,35 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
         }
     }
+
+    private void jsonArrayRequest(String url){
+        // On va créer une Request pour Volley.
+        // JsonObjectRequest hérite de Request et transforme automatiquement les données reçues en un JSONArray
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Toast.makeText(LoginActivity.this, "Succés: " + response.toString(), Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO: Handle error
+                        Toast.makeText(LoginActivity.this, "erreur: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        finish();
+
+                    }
+                });
+        jsonObjectRequest.setTag(this);
+
+        // On ajoute la Request au RequestQueue pour la lancer
+        mVolleyRequestQueue.add(jsonObjectRequest);
+
+
+    }
+
 }
 
