@@ -116,12 +116,14 @@ public class CourseRESTMethods {
         return true;
     }
 
-    public static List<Course> getNearestCourses(RequestQueue queue,float latitude,float longitude) throws Exception {
+    public static List<Course> getNearestCourses(RequestQueue queue,double latitude,double longitude,int radiusInMetres) throws Exception {
 
         String baseUrl = Configuration.baseUrl+serviceSuffix;
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET,baseUrl+"getNearestCourses/"+"0.0/"+"0.0", new JSONObject(), future, future);
+        JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET,
+                baseUrl+String.format("getNearestCourses/%d/%d/%d",latitude,longitude,radiusInMetres),
+                new JSONObject(), future, future);
         queue.add(getRequest);
         JSONObject response = null;
         try {
