@@ -25,13 +25,16 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import treasurehunt.client.AccountRESTMethods;
-import treasurehunt.client.Configuration;
 import treasurehunt.model.Account;
+import treasurehunt.client.*;
 
 /**
  * A login screen that offers login via email/password.
@@ -53,7 +56,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     protected void onCreate(Bundle savedInstanceState) {
 
         // mise à jour configuration Api REST
-        Configuration.baseUrl = "35.205.189.193";
+        Configuration.baseUrl = "http://35.234.90.191/TreasureHuntApiRestServer/api/";
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
@@ -253,7 +256,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected Boolean doInBackground(Void... params) {
 
             try {
-                account = AccountRESTMethods.get(mEmail);
+                RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+                account = AccountRESTMethods.get(queue,mEmail);
             } catch (Exception e) {
                 return false;
             }
@@ -272,7 +276,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
 
             if (success) {
-                finish();
+                Toast.makeText(getApplicationContext(),"ok",Toast.LENGTH_LONG);
+                mPasswordView.requestFocus();
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
