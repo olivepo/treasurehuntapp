@@ -20,7 +20,7 @@ public class AppContext {
     public List<Course> nearestCourse;
 
     private AppContext(Context context) {
-        mCtx = context;
+        mCtx = context.getApplicationContext();
         mRequestQueue = getRequestQueue();
         account = null;
     }
@@ -36,7 +36,7 @@ public class AppContext {
         if (mRequestQueue == null) {
             // getApplicationContext() is key, it keeps you from leaking the
             // Activity or BroadcastReceiver if someone passes one in.
-            mRequestQueue = Volley.newRequestQueue(mCtx.getApplicationContext());
+            mRequestQueue = Volley.newRequestQueue(mCtx);
         }
         return mRequestQueue;
     }
