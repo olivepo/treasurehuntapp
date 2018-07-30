@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -16,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.treasurehuntapp.client.AppContext;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -36,6 +38,13 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.util.List;
+
+import treasurehunt.client.Configuration;
+import treasurehunt.client.CourseRESTMethods;
+import treasurehunt.model.Account;
+import treasurehunt.model.Course;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, View.OnClickListener {
 
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -54,9 +63,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationCallback mLocationCallback;
     private boolean mRequestingLocationUpdates = true;
 
+    private AppContext appContext;
+
+    /**
+     * Keep track of the login task to ensure we can cancel it if requested.
+     */
+    private MapsActivity.NearestCourseTask mNearestCourseTask = null;
+
     @SuppressLint("MissingPermission")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        appContext = AppContext.getInstance(MapsActivity.this);
 
         super.onCreate(savedInstanceState);
         checkLocationPermission();
@@ -204,6 +222,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                     Toast.makeText(MapsActivity.this, "Last Location  : " + successLastLatLng.toString(), Toast.LENGTH_LONG).show();
+                    mNearestCourseTask=new NearestCourseTask(mLastLocation.getLatitude(),mLastLocation.getLongitude());
+                    mNearestCourseTask.execute();
 
 
                 } else {
@@ -385,5 +405,69 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
 
+    }
+
+    /**
+     * Represents an asynchronous login/registration task used to get the nearest course
+     * the user.
+     */
+    public class NearestCourseTask extends AsyncTask<Void, Void, Boolean> {
+
+        private final double latitude;
+        private final double longitude;
+        private Account account = null;
+        private List<Course> listCourses;
+
+        NearestCourseTask(double latitude, double longitude) {
+            this.latitude =latitude;
+            this.longitude=longitude;
+
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            try {
+
+                listCourses = CourseRESTMethods.getNearestCourses(appContext.getRequestQueue(), latitude,longitude,
+                Configuration.RadiusInMetres);
+            } catch (Exception e) {
+                return false;
+            }
+
+            if (listCourses == null) {
+                return false;
+            } else {
+                return true;
+            }
+
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            mNearestCourseTask = null;
+         //   showProgress(false);
+
+            if (success) {
+                appContext.nearestCourse = listCourses;
+                for (Course course : listCourses){
+
+                    LatLng courseLatLong = new LatLng(course.getSteps().get(0).latitude, course.getSteps().get(0).longitude);
+                    mMap.addMarker(new MarkerOptions().position(courseLatLong).title(course.name));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(courseLatLong, 17));
+                }
+
+
+
+            } else {
+
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            mNearestCourseTask = null;
+          //  showProgress(false);
+        }
     }
 }

@@ -5,8 +5,11 @@ import android.content.Context;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
+import java.util.List;
+
 import treasurehunt.model.Account;
 import treasurehunt.client.Configuration;
+import treasurehunt.model.Course;
 
 public class AppContext {
 
@@ -14,6 +17,7 @@ public class AppContext {
     private static Context mCtx;
     private RequestQueue mRequestQueue;
     public Account account;
+    public List<Course> nearestCourse;
 
     private AppContext(Context context) {
         mCtx = context;
