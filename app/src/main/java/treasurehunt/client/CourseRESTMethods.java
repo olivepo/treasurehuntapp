@@ -122,7 +122,7 @@ public class CourseRESTMethods {
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
         JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET,
-                baseUrl+String.format("getNearestCourses/%d/%d/%d",latitude,longitude,radiusInMetres),
+                baseUrl+String.format("getNearestCourses/%s/%s/%s",Double.toString(latitude),Double.toString(longitude),Integer.toString(radiusInMetres)),
                 new JSONObject(), future, future);
         queue.add(getRequest);
         JSONObject response = null;
