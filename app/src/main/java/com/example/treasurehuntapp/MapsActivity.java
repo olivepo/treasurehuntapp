@@ -32,6 +32,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -110,11 +111,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     return;
                 }
                 for (Location location : locationResult.getLocations()) {
+                    if (location.distanceTo(mLastLocation)>Configuration.RadiusInMetres){
+                        mNearestCourseTask=new NearestCourseTask(location.getLatitude(),location.getLongitude());
+                        mNearestCourseTask.execute();
+                    }
+                    mLastLocation=location;
                     // Update UI with location data
                     // ...
-                    LatLng updateLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                 /*   LatLng updateLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                     mMap.addMarker(new MarkerOptions().position(updateLatLng).title("location update"));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(updateLatLng, 17));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(updateLatLng, 17));*/
 
 
                 }
@@ -452,9 +458,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 appContext.nearestCourse = listCourses;
                 for (Course course : listCourses){
 
-                    LatLng courseLatLong = new LatLng(course.getSteps().get(0).latitude, course.getSteps().get(0).longitude);
-                    mMap.addMarker(new MarkerOptions().position(courseLatLong).title(course.name));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(courseLatLong, 17));
+                    LatLng courseLatLong = new LatLng(course.start.latitude, course.start.longitude);
+                    mMap.addMarker(new MarkerOptions()
+                            .position(courseLatLong)
+                            .title(course.name)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+
                 }
 
 
