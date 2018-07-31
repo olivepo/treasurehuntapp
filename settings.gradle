@@ -1,1 +1,1 @@
-include ':app', ':createhuntcomposant'
+include ':app'

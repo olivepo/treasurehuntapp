@@ -2,17 +2,16 @@ package com.example.treasurehuntapp;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -43,7 +42,6 @@ import java.util.List;
 
 import treasurehunt.client.Configuration;
 import treasurehunt.client.CourseRESTMethods;
-import treasurehunt.model.Account;
 import treasurehunt.model.Course;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, View.OnClickListener {
@@ -52,14 +50,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int REQUEST_CHECK_SETTINGS = 2;
     private static final String REQUESTING_LOCATION_UPDATES_KEY = "";
     private static final int LOCATION = 2;
-    private static final int PERMISSION_REQUEST_CALL_CREATE_CODE = 100;
-    private static final int CALL_REQUEST = 99;
     private GoogleMap mMap;
 
     private FusedLocationProviderClient mFusedLocationClient;
 
     private Location mLastLocation;
-    private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest = new LocationRequest();
     private LocationCallback mLocationCallback;
     private boolean mRequestingLocationUpdates = true;
@@ -81,7 +76,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         checkLocationPermission();
         setContentView(R.layout.activity_maps);
 
-        Button create = (Button) findViewById(R.id.createButton);
+        Button create = findViewById(R.id.createButton);
         create.setOnClickListener(this);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -92,10 +87,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //restore save values
         updateValuesFromBundle(savedInstanceState);
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addApi(LocationServices.API)
-                .build();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         defLocUpdateCallBack();
@@ -126,7 +117,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
 
-            ;
         };
     }
 
@@ -190,6 +180,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
+                    Toast.makeText(MapsActivity.this, "Permission denied :", Toast.LENGTH_LONG).show();
                 }
                 return;
             }
@@ -354,6 +345,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
         if (requestCode == LOCATION) {
+
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 mRequestingLocationUpdates = true;
@@ -383,22 +375,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void create(View view) {
         //TODO appel creation de chasse au trésor
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            if (checkSelfPermission("composant.permission.CALL_CREATE") != PackageManager.PERMISSION_GRANTED) {
-                String[] permissions = {"composant.permission.CALL_CREATE"};
-                requestPermissions(permissions, PERMISSION_REQUEST_CALL_CREATE_CODE);
-                Context context = getApplicationContext();
-                Toast toast = Toast.makeText(context, "L'activité ComposantLogin n'est pas enregistrée !", Toast.LENGTH_SHORT);
-                toast.show();
-                return;
-            }
-        }
 
-        Intent intent = new Intent();
-        intent.setAction("createhuntcomposant.CREATE");
-        if(intent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(intent,CALL_REQUEST);
-        }
+        startActivity(new Intent(MapsActivity.this,CreateHuntActivity.class));
 
     }
 
@@ -417,11 +395,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * Represents an asynchronous login/registration task used to get the nearest course
      * the user.
      */
-    public class NearestCourseTask extends AsyncTask<Void, Void, Boolean> {
+    private class NearestCourseTask extends AsyncTask<Void, Void, Boolean> {
 
         private final double latitude;
         private final double longitude;
-        private Account account = null;
         private List<Course> listCourses;
 
         NearestCourseTask(double latitude, double longitude) {
@@ -441,11 +418,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return false;
             }
 
-            if (listCourses == null) {
-                return false;
-            } else {
-                return true;
-            }
+            return listCourses != null;
 
         }
 
@@ -465,11 +438,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
 
                 }
-
-
-
-            } else {
-
             }
         }
 
