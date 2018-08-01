@@ -39,10 +39,10 @@
             android:id="@+id/TextView02"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Begin date: "></TextView>
+            android:text="Email account: "></TextView>
 
         <EditText
-            android:id="@+id/txtBeginDate"
+            android:id="@+id/txtEmail"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
@@ -59,10 +59,10 @@
             android:id="@+id/TextView03"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="End date: "></TextView>
+            android:text="Begin date: "></TextView>
 
         <EditText
-            android:id="@+id/txEndDate"
+            android:id="@+id/txBeginDate"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
@@ -81,10 +81,10 @@
             android:id="@+id/TextView04"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Riddle 1: "></TextView>
+            android:text="End date: "></TextView>
 
         <EditText
-            android:id="@+id/txRidleOne"
+            android:id="@+id/txEndDate"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
@@ -103,10 +103,10 @@
             android:id="@+id/TextView05"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Answer 1: "></TextView>
+            android:text="Jokers allowed"></TextView>
 
         <EditText
-            android:id="@+id/txAnswerOne"
+            android:id="@+id/txJokerAllowed"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
@@ -125,10 +125,10 @@
             android:id="@+id/TextView06"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Latitude 1: "></TextView>
+            android:text="Start step id"></TextView>
 
         <EditText
-            android:id="@+id/txLatitudeOne"
+            android:id="@+id/txStartStepId"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
@@ -147,10 +147,50 @@
             android:id="@+id/TextView07"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Longitude 1: "></TextView>
+            android:text="Start latitude: "></TextView>
 
         <EditText
-            android:id="@+id/txLongitudeOne"
+            android:id="@+id/txStartLatitude"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text=""></EditText>
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/TableRow08"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/TextView08"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start longitude: "></TextView>
+
+        <EditText
+            android:id="@+id/txStartLongitude"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text=""></EditText>
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/TableRow09"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/TextView09"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Number of next step: "></TextView>
+
+        <EditText
+            android:id="@+id/txNumberOfNextStep"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
@@ -158,7 +198,7 @@
 
 
     <TableRow
-        android:id="@+id/TableRow12"
+        android:id="@+id/TableRow10"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -166,16 +206,15 @@
 
 
         <Button
-            android:id="@+id/submitButton"
+            android:id="@+id/continueButton"
             android:layout_width="wrap_content"
+            android:onClick="nextStep"
             android:layout_height="wrap_content"
             android:layout_gravity="right|top"
-            android:layout_marginTop="20dp"
-            android:fadeScrollbars="false"
-            android:onClick="submit"
+            android:text="continue"
             android:padding="10dp"
-            android:paddingRight="10dp"
-            android:text="submit" />
+            android:layout_marginTop="20dp"
+            android:paddingRight="10dp"/>
     </TableRow>
 
 </TableLayout>

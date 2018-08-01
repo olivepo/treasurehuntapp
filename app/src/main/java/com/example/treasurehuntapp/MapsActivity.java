@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.treasurehuntapp.client.AppContext;
+import com.example.treasurehuntapp.createhunt.CreateHuntActivity;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -101,20 +102,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (locationResult == null) {
                     return;
                 }
-                for (Location location : locationResult.getLocations()) {
-                    if (location.distanceTo(mLastLocation)>Configuration.RadiusInMetres){
-                        mNearestCourseTask=new NearestCourseTask(location.getLatitude(),location.getLongitude());
-                        mNearestCourseTask.execute();
-                    }
-                    mLastLocation=location;
-                    // Update UI with location data
-                    // ...
+                if (null!=locationResult.getLocations()){
+                    for (Location location : locationResult.getLocations()) {
+                        if (null!=location&&location.distanceTo(mLastLocation)>Configuration.RadiusInMetres){
+                            mNearestCourseTask=new NearestCourseTask(location.getLatitude(),location.getLongitude());
+                            mNearestCourseTask.execute();
+                        }
+                        if (null!=mLastLocation){
+                            mLastLocation=location;
+                        }
+
+                        // Update UI with location data
+                        // ...
                  /*   LatLng updateLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                     mMap.addMarker(new MarkerOptions().position(updateLatLng).title("location update"));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(updateLatLng, 17));*/
 
 
+                    }
                 }
+
             }
 
         };
@@ -366,6 +373,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         switch (view.getId()) {
             case (R.id.createButton):
                 create(view);
+                finish();
                 break;
 
             default:
