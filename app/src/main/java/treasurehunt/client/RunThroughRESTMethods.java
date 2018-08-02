@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import treasurehunt.model.RunThrough;
 import treasurehunt.model.RunThroughs;
+import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 import com.android.volley.*;
 import com.android.volley.toolbox.*;
@@ -26,7 +27,7 @@ public class RunThroughRESTMethods {
 
         String baseUrl = Configuration.baseUrl+serviceSuffix;
 
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
         JSONObject jsonRunThrough = new JSONObject(mapper.writeValueAsString(runThrough));
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
@@ -90,7 +91,7 @@ public class RunThroughRESTMethods {
                 }
             }
         }
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
         return mapper.readValue(response.toString(),RunThrough.class);
 
     }
@@ -134,7 +135,7 @@ public class RunThroughRESTMethods {
                 throw new Exception("Failed : HTTP error code : " + error.networkResponse.statusCode);
             }
         }
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
         RunThroughs runThroughs = mapper.readValue(response.toString(),RunThroughs.class);
         return runThroughs.list;
 

@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import treasurehunt.model.Account;
 import treasurehunt.model.Accounts;
+import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 import com.android.volley.*;
 import com.android.volley.toolbox.*;
@@ -26,7 +27,7 @@ public class AccountRESTMethods {
 
         String baseUrl = Configuration.baseUrl+serviceSuffix;
 
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
         JSONObject jsonAccount = new JSONObject(mapper.writeValueAsString(account));
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
@@ -90,7 +91,7 @@ public class AccountRESTMethods {
                 }
             }
         }
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
         return mapper.readValue(response.toString(),Account.class);
 
     }
@@ -134,7 +135,7 @@ public class AccountRESTMethods {
                 throw new Exception("Failed : HTTP error code : " + error.networkResponse.statusCode);
             }
         }
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
         Accounts accounts = mapper.readValue(response.toString(),Accounts.class);
         return accounts.list;
 

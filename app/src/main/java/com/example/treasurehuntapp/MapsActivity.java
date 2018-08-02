@@ -17,6 +17,9 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.treasurehuntapp.client.AppContext;
+import com.example.treasurehuntapp.client.AppPermissions;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -33,18 +36,21 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.util.HashMap;
 import java.util.List;
 
 import treasurehunt.client.Configuration;
 import treasurehunt.client.CourseRESTMethods;
 import treasurehunt.model.Course;
+import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, View.OnClickListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, View.OnClickListener, GoogleMap.OnMarkerClickListener {
 
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int REQUEST_CHECK_SETTINGS = 2;
@@ -58,6 +64,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationRequest mLocationRequest = new LocationRequest();
     private LocationCallback mLocationCallback;
     private boolean mRequestingLocationUpdates = true;
+
+    private HashMap<String,Course> markersCourse = new HashMap<String,Course>(); // key = markerId, value = course
 
     private AppContext appContext;
 
@@ -73,7 +81,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         appContext = AppContext.getInstance(MapsActivity.this);
 
         super.onCreate(savedInstanceState);
-        checkLocationPermission();
+        AppPermissions.checkLocationPermission(this);
         setContentView(R.layout.activity_maps);
 
         Button create = findViewById(R.id.createButton);
@@ -120,31 +128,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         };
     }
 
-    private void checkLocationPermission() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            // Permission is not grantedACCESS_FINE_LOCATION
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-            } else {
-                // No explanation needed; request the permission
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
-            }
-        } else {
-            // Permission has already been granted
-        }
-    }
-
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -157,7 +140,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
-
 
         mMap = googleMap;
         setUpMap();
@@ -180,7 +162,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
-                    Toast.makeText(MapsActivity.this, "Permission denied :", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapsActivity.this, "Permission refusée :", Toast.LENGTH_LONG).show();
                 }
                 return;
             }
@@ -193,6 +175,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @SuppressLint("MissingPermission")
     private void setUpMap() {
+
+        mMap.setOnMarkerClickListener(this);
 
         getLastLocation();
         getCurrentLocationSettings();
@@ -214,21 +198,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     LatLng successLastLatLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
 
-                    mMap.addMarker(new MarkerOptions().position(successLastLatLng).title("Last location"));
+                    mMap.addMarker(new MarkerOptions().position(successLastLatLng).title("Ma position"));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(successLastLatLng, 17));
 
 
-                    Toast.makeText(MapsActivity.this, "Last Location  : " + successLastLatLng.toString(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MapsActivity.this, "Ma position : " + successLastLatLng.toString(), Toast.LENGTH_LONG).show();
                     mNearestCourseTask=new NearestCourseTask(mLastLocation.getLatitude(),mLastLocation.getLongitude());
                     mNearestCourseTask.execute();
 
 
                 } else {
-                    LatLng failedLastLatLng = new LatLng(48.8666846, 2.3553182);
-                    Toast.makeText(MapsActivity.this, "Nw Location  : " + failedLastLatLng.toString(), Toast.LENGTH_LONG).show();
-
-                    mMap.addMarker(new MarkerOptions().position(failedLastLatLng).title("Le CNAM"));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(failedLastLatLng, 17));
+//                    LatLng failedLastLatLng = new LatLng(48.8666846, 2.3553182);
+//                    Toast.makeText(MapsActivity.this, "Nw Location  : " + failedLastLatLng.toString(), Toast.LENGTH_LONG).show();
+//
+//                    mMap.addMarker(new MarkerOptions().position(failedLastLatLng).title("Le CNAM"));
+//                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(failedLastLatLng, 17));
 
                 }
             }
@@ -391,6 +375,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        // lancer le parcours d'une course
+        Intent intent = new Intent(MapsActivity.this, RunthroughActivity.class);
+        Bundle bundle = new Bundle();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+        try {
+            bundle.putString("serializedCourse", mapper.writeValueAsString(markersCourse.get(marker.getId())));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return false;
+        }
+        intent.putExtras(bundle);
+        startActivity(intent);
+        return true;
+    }
+
     /**
      * Represents an asynchronous login/registration task used to get the nearest course
      * the user.
@@ -432,11 +433,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 for (Course course : listCourses){
 
                     LatLng courseLatLong = new LatLng(course.start.latitude, course.start.longitude);
-                    mMap.addMarker(new MarkerOptions()
+                    Marker marker = mMap.addMarker(new MarkerOptions()
                             .position(courseLatLong)
                             .title(course.name)
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-
+                    markersCourse.put(marker.getId(),course);
                 }
             }
         }
