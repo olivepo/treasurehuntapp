@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.treasurehuntapp.client.AppContext;
+import com.example.treasurehuntapp.createhunt.CreateHuntActivity;
 import com.example.treasurehuntapp.client.AppPermissions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -350,6 +351,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         switch (view.getId()) {
             case (R.id.createButton):
                 create(view);
+                finish();
                 break;
 
             default:
