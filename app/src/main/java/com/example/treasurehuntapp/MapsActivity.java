@@ -19,8 +19,10 @@ import android.widget.Toast;
 import com.example.treasurehuntapp.client.AppContext;
 import com.example.treasurehuntapp.createhunt.CreateHuntActivity;
 import com.example.treasurehuntapp.client.AppPermissions;
+import com.example.treasurehuntapp.createhunt.NextStepActivity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -51,19 +53,45 @@ import treasurehunt.client.CourseRESTMethods;
 import treasurehunt.model.Course;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, View.OnClickListener, GoogleMap.OnMarkerClickListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, GoogleMap.OnMarkerClickListener {
 
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int REQUEST_CHECK_SETTINGS = 2;
     private static final String REQUESTING_LOCATION_UPDATES_KEY = "";
     private static final int LOCATION = 2;
     private GoogleMap mMap;
-
+    GoogleApiClient mGoogleApiClient;
     private FusedLocationProviderClient mFusedLocationClient;
-
     private Location mLastLocation;
     private LocationRequest mLocationRequest = new LocationRequest();
-    private LocationCallback mLocationCallback;
+    LocationCallback mLocationCallback = new LocationCallback(){
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            if (locationResult == null) {
+                return;
+            }
+            for (Location location : locationResult.getLocations()) {
+                if (null!=location&&null!=mLastLocation) {
+                    if (location.distanceTo(mLastLocation) > Configuration.RadiusInMetres) {
+                        mNearestCourseTask = new NearestCourseTask(location.getLatitude(), location.getLongitude());
+                        mNearestCourseTask.execute();
+                    }
+                }
+                if (null!=mLastLocation){
+                    mLastLocation = location;
+                }
+
+                    // Update UI with location data
+                    // ...
+                 /*   LatLng updateLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    mMap.addMarker(new MarkerOptions().position(updateLatLng).title("location update"));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(updateLatLng, 17));*/
+
+            }
+        };
+
+    };
+
     private boolean mRequestingLocationUpdates = true;
 
     private HashMap<String,Course> markersCourse = new HashMap<String,Course>(); // key = markerId, value = course
@@ -87,6 +115,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Button create = findViewById(R.id.createButton);
         create.setOnClickListener(this);
+        Button nextStep = findViewById(R.id.mapNextStepButton);
+        nextStep.setOnClickListener(this);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -98,35 +128,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        defLocUpdateCallBack();
-
-    }
-
-
-    private void defLocUpdateCallBack() {
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    return;
-                }
-                for (Location location : locationResult.getLocations()) {
-                    if (location.distanceTo(mLastLocation)>Configuration.RadiusInMetres){
-                        mNearestCourseTask=new NearestCourseTask(location.getLatitude(),location.getLongitude());
-                        mNearestCourseTask.execute();
-                    }
-                    mLastLocation=location;
-                    // Update UI with location data
-                    // ...
-                 /*   LatLng updateLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    mMap.addMarker(new MarkerOptions().position(updateLatLng).title("location update"));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(updateLatLng, 17));*/
-
-
-                }
-            }
-
-        };
     }
 
     /**
@@ -222,7 +223,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-
+        startLocationUpdates();
     }
 
     @Override
@@ -286,7 +287,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (mRequestingLocationUpdates) {
             startLocationUpdates();
         }
+        else{
+            buildGoogleApiClient();
+        }
     }
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        mGoogleApiClient.connect();
+    }
+
 
     @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
@@ -351,6 +365,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         switch (view.getId()) {
             case (R.id.createButton):
                 create(view);
+                if (mFusedLocationClient != null) {
+                    mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+                }
+                finish();
+                break;
+            case (R.id.mapNextStepButton):
+                nextStep(view);
                 finish();
                 break;
 
@@ -366,6 +387,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    public void nextStep(View view) {
+
+        startActivity(new Intent(MapsActivity.this,NextStepActivity.class));
+    }
+
 
     /**
      * Called when pointer capture is enabled or disabled for the current window.
@@ -375,6 +401,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
 
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mFusedLocationClient != null) {
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        }
     }
 
     @Override
@@ -393,6 +427,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         startActivity(intent);
         return true;
     }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
 
     /**
      * Represents an asynchronous login/registration task used to get the nearest course

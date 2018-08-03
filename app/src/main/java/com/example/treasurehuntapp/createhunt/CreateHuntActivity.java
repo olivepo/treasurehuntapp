@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
+import com.example.treasurehuntapp.MapsActivity;
 import com.example.treasurehuntapp.R;
 
 public class CreateHuntActivity extends AppCompatActivity implements View.OnClickListener {
@@ -15,7 +16,7 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_hunt);
 
-        Button cont = findViewById(R.id.continueButton);
+        Button cont = findViewById(R.id.createNextStepButton);
         cont.setOnClickListener(this);
 
     }
@@ -29,9 +30,9 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
     public void onClick(View view) {
 
         switch (view.getId()) {
-            case (R.id.continueButton):
+            case (R.id.createNextStepButton):
                 nextStep(view);
-               // finish();
+                finish();
                 break;
 
             default:
@@ -41,6 +42,6 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void nextStep(View view) {
-        startActivity(new Intent(CreateHuntActivity.this,NextStepActivity.class));
+        startActivity(new Intent(CreateHuntActivity.this,MapsActivity.class));
     }
 }
