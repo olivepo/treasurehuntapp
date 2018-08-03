@@ -365,10 +365,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         switch (view.getId()) {
             case (R.id.createButton):
                 create(view);
-                if (mFusedLocationClient != null) {
-                    mFusedLocationClient.removeLocationUpdates(mLocationCallback);
-                }
-                finish();
+
                 break;
             case (R.id.mapNextStepButton):
                 nextStep(view);
@@ -381,10 +378,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void create(View view) {
-        //TODO appel creation de chasse au trésor
-
-        startActivity(new Intent(MapsActivity.this,CreateHuntActivity.class));
-
+        Intent intent=new Intent(MapsActivity.this,CreateHuntActivity.class);
+        Bundle bundle = new Bundle();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+        try {
+            bundle.putString("myLocationLat", mapper.writeValueAsString(mLastLocation.getLatitude()));
+            bundle.putString("myLocationLong", mapper.writeValueAsString(mLastLocation.getLongitude()));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        intent.putExtras(bundle);
+        startActivity(intent);
+        if (mFusedLocationClient != null) {
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        }
+        finish();
     }
 
     public void nextStep(View view) {
