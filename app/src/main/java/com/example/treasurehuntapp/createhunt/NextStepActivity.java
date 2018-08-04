@@ -22,8 +22,11 @@ import java.util.ArrayList;
 import Utils.DateUtils;
 import treasurehunt.model.AnswerChoice;
 import treasurehunt.model.Course;
+import treasurehunt.model.CourseStepsIterator;
 import treasurehunt.model.Riddle;
 import treasurehunt.model.Step;
+import treasurehunt.model.StepComposite;
+import treasurehunt.model.StepCompositeFactory;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 
@@ -82,7 +85,7 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
         switch (view.getId()) {
             case (R.id.nextStepButton):
-                finish();
+            //    finish();
                 nextStep(view);
                 break;
 
@@ -121,18 +124,21 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
 
         startActivity(new Intent(NextStepActivity.this,MapsActivity.class));
+
+        finish();
     }
 
     private void initCourseFromUI(Course courseIncreation) {
-        Step step = null;
+
         EditText stepId=findViewById(R.id.txtStepId);
-        step.id=stepId.getText().toString();
+        String id = stepId.getText().toString();
+        EditText stepLat=findViewById(R.id.txtStepLat);
+        double latitude = Double.parseDouble(stepLat.getText().toString());
+        EditText stepLong=findViewById(R.id.txtStepLong);
+        double longitude = Double.parseDouble(stepLong.getText().toString());
+        StepComposite step = (StepComposite) new StepCompositeFactory().createInstance(id,latitude,longitude);
         EditText stepDescription=findViewById(R.id.txtStepDescription);
         step.description =stepDescription.getText().toString();
-        EditText stepLat=findViewById(R.id.txtStepLat);
-        step.latitude =Double.parseDouble(stepLat.getText().toString());
-        EditText stepLong=findViewById(R.id.txtStepLong);
-        step.longitude =Double.parseDouble(stepLong.getText().toString());
         EditText stepMaxDuration=findViewById(R.id.txtStepMaxDur);
         step.maximumDurationInMinutes =Integer.parseInt(stepMaxDuration.getText().toString());
         EditText stepScoreGiven = findViewById(R.id.txtStepScoreGiven);
@@ -157,6 +163,12 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         CheckBox checkBoxTwo = findViewById(R.id.checkBoxAnswerOne);
         answerChoiceOne.isValid=checkBoxTwo.isChecked();
         step.riddle.answerChoices.add(answerChoiceTwo);
+        if (courseIncreation.start.getNextStepsIds().isEmpty()){
+            courseIncreation.start.addStep(step);
+        }
+        CourseStepsIterator it = new CourseStepsIterator(courseIncreation);
+
+
 
 
     }

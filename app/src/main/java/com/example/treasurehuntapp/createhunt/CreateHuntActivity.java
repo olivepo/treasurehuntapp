@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import Utils.DateUtils;
 import treasurehunt.model.Course;
 import treasurehunt.model.StepComposite;
+import treasurehunt.model.StepCompositeFactory;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 public class CreateHuntActivity extends AppCompatActivity implements View.OnClickListener {
@@ -115,11 +116,10 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
         EditText idStart = findViewById(R.id.txStartStepId);
         EditText latStart=findViewById(R.id.txStartLatitude);
         EditText longStart=findViewById(R.id.txStartLongitude);
-        StepComposite startStep = new StepComposite();
-        startStep.id=idStart.toString();
-        startStep.latitude=Double.parseDouble(latStart.getText().toString());
-        startStep.longitude=Double.parseDouble(longStart.getText().toString());
-        course.start=startStep;
+        String id = idStart.getText().toString();
+        double latitude = Double.parseDouble(latStart.getText().toString());
+        double longitude=Double.parseDouble(longStart.getText().toString());
+        course.start = (StepComposite) new StepCompositeFactory().createInstance(id,latitude,longitude);
         return course;
     }
 }
