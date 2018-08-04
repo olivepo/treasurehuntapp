@@ -106,10 +106,10 @@
             android:id="@+id/TextView05"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Step description: "></TextView>
+            android:text="Step max duration: "></TextView>
 
         <EditText
-            android:id="@+id/txtStepDescription"
+            android:id="@+id/txtStepScoreGiven"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
@@ -128,10 +128,10 @@
             android:id="@+id/TextView06"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Riddle text: "></TextView>
+            android:text="Step description: "></TextView>
 
         <EditText
-            android:id="@+id/txtRidlleText"
+            android:id="@+id/txtStepDescription"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
@@ -150,10 +150,10 @@
             android:id="@+id/TextView07"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Riddle joker text: "></TextView>
+            android:text="Riddle text: "></TextView>
 
         <EditText
-            android:id="@+id/txtRidlleJokerText"
+            android:id="@+id/txtRidlleText"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
@@ -168,9 +168,31 @@
         android:orientation="vertical"
         android:visibility="visible">
 
-
         <TextView
             android:id="@+id/TextView08"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Riddle joker text: "></TextView>
+
+        <EditText
+            android:id="@+id/txtRidlleJokerText"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text=""></EditText>
+
+
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/TableRow09"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+
+        <TextView
+            android:id="@+id/TextView09"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="isMCQ: "></TextView>
@@ -186,30 +208,64 @@
 
 
     <TableRow
-        android:id="@+id/TableRow09"
+        android:id="@+id/TableRow10"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="visible">
 
         <TextView
-            android:id="@+id/TextView09"
+            android:id="@+id/TextView10"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Riddle Answer: "></TextView>
 
         <EditText
-            android:id="@+id/txtRidlleAnswer"
+            android:id="@+id/txtRidlleAnswerOne"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
+
+        <CheckBox
+            android:id="@+id/checkBoxAnswerOne"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="" />
+
+
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/TableRow11"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/TextView11"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Riddle Answer: "></TextView>
+
+        <EditText
+            android:id="@+id/txtRidlleAnswerTwo"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text=""></EditText>
+
+        <CheckBox
+            android:id="@+id/checkBoxAnswerTwo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="" />
 
 
     </TableRow>
 
 
     <TableRow
-        android:id="@+id/TableRow10"
+        android:id="@+id/TableRow12"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"

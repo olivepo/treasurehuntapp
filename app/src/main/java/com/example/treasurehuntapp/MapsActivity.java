@@ -45,6 +45,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -103,6 +104,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     private MapsActivity.NearestCourseTask mNearestCourseTask = null;
 
+
     @SuppressLint("MissingPermission")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,6 +129,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         updateValuesFromBundle(savedInstanceState);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+
+
+
 
     }
 
@@ -396,8 +402,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void nextStep(View view) {
+        Intent intent=new Intent(MapsActivity.this,NextStepActivity.class);
+        Bundle bundle = getIntent().getExtras();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+        if (bundle == null) {
+            finish();
+        }
+        else
+        {
+            try {
+                bundle.putString("myLocationLat", mapper.writeValueAsString(mLastLocation.getLatitude()));
+                bundle.putString("myLocationLong", mapper.writeValueAsString(mLastLocation.getLongitude()));
+            } catch (IOException e) {
+                e.printStackTrace();
 
-        startActivity(new Intent(MapsActivity.this,NextStepActivity.class));
+            }
+            intent.putExtras(bundle);
+            startActivity(intent);
+            if (mFusedLocationClient != null) {
+                mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+            }
+            finish();
+        }
     }
 
 
