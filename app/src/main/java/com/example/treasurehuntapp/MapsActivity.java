@@ -1,6 +1,5 @@
 package com.example.treasurehuntapp;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -10,7 +9,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.widget.Button;
@@ -116,6 +114,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         mNearestCourseTask.execute();
                     }
                     mLastLocation=location;
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 17));
                     // Update UI with location data
                     // ...
                  /*   LatLng updateLatLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -208,13 +207,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mNearestCourseTask.execute();
 
 
-                } else {
-//                    LatLng failedLastLatLng = new LatLng(48.8666846, 2.3553182);
-//                    Toast.makeText(MapsActivity.this, "Nw Location  : " + failedLastLatLng.toString(), Toast.LENGTH_LONG).show();
-//
-//                    mMap.addMarker(new MarkerOptions().position(failedLastLatLng).title("Le CNAM"));
-//                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(failedLastLatLng, 17));
-
                 }
             }
         });
@@ -293,6 +285,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mFusedLocationClient.requestLocationUpdates(mLocationRequest,
                 mLocationCallback,
                 null /* Looper */);
+    }
+
+    @SuppressLint("MissingPermission")
+    private void stopLocationUpdates() {
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
 
@@ -383,14 +380,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Intent intent = new Intent(MapsActivity.this, RunthroughActivity.class);
         Bundle bundle = new Bundle();
         ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
-        try {
-            bundle.putString("serializedCourse", mapper.writeValueAsString(markersCourse.get(marker.getId())));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return false;
+        if (markersCourse.containsKey(marker.getId())) {
+            try {
+                bundle.putString("serializedCourse", mapper.writeValueAsString(markersCourse.get(marker.getId())));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return false;
+            }
+            intent.putExtras(bundle);
+            startActivity(intent);
         }
-        intent.putExtras(bundle);
-        startActivity(intent);
         return true;
     }
 
