@@ -5,8 +5,21 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
+import com.example.treasurehuntapp.MapsActivity;
 import com.example.treasurehuntapp.R;
+import com.example.treasurehuntapp.RunthroughActivity;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.time.LocalDateTime;
+
+import Utils.DateUtils;
+import treasurehunt.model.Course;
+import treasurehunt.model.StepComposite;
+import treasurehunt.model.StepCompositeFactory;
+import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 public class CreateHuntActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -15,9 +28,39 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_hunt);
 
-        Button cont = findViewById(R.id.continueButton);
+        Button cont = findViewById(R.id.createNextStepButton);
         cont.setOnClickListener(this);
 
+        init();
+
+    }
+
+    private void init() {
+        Intent intent =getIntent();
+        String lat =null;
+        String longitude=null;
+        if (null!=intent){
+            Bundle bundle = getIntent().getExtras();
+            lat = bundle.getString("myLocationLat");
+            longitude = bundle.getString("myLocationLong");
+        }
+
+
+        EditText latEditText = findViewById(R.id.txStartLatitude);
+        if (null!=lat){
+            latEditText.setText(lat);
+        }
+        EditText longEditText = findViewById(R.id.txStartLongitude);
+        if (null!=longitude){
+            longEditText.setText(longitude);
+        }
+
+
+        EditText beginDate = findViewById(R.id.txBeginDate);
+        beginDate.setText(LocalDateTime.now().format(DateUtils.formatter));
+
+        EditText endDate = findViewById(R.id.txEndDate);
+        endDate.setText(LocalDateTime.now().plusMonths(1).format(DateUtils.formatter));
     }
 
     /**
@@ -29,9 +72,9 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
     public void onClick(View view) {
 
         switch (view.getId()) {
-            case (R.id.continueButton):
+            case (R.id.createNextStepButton):
                 nextStep(view);
-               // finish();
+                finish();
                 break;
 
             default:
@@ -41,6 +84,42 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void nextStep(View view) {
-        startActivity(new Intent(CreateHuntActivity.this,NextStepActivity.class));
+
+        Course course =initCourseFromUI();
+
+        Intent intent = new Intent(CreateHuntActivity.this, MapsActivity.class);
+        Bundle bundle = new Bundle();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+        try {
+            bundle.putString("startCourse", mapper.writeValueAsString(course));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+
+        }
+        intent.putExtras(bundle);
+        startActivity(intent);
+    }
+
+    private Course initCourseFromUI() {
+        Course course = new Course();
+        EditText name=findViewById(R.id.txtUname);
+        course.name=name.getText().toString();
+        course.id=name.getText().toString();
+        EditText mail =findViewById(R.id.txtEmail);
+        course.accountEmail=mail.getText().toString();
+        EditText beginDate=findViewById(R.id.txBeginDate);
+        course.begin= LocalDateTime.parse(beginDate.getText().toString(), DateUtils.formatter);
+        EditText endDate=findViewById(R.id.txEndDate);
+        course.end=LocalDateTime.parse(endDate.getText().toString(),DateUtils.formatter);
+        EditText joker = findViewById(R.id.txJokerAllowed);
+        course.jokersAllowed=Integer.parseInt(joker.getText().toString());
+        EditText idStart = findViewById(R.id.txStartStepId);
+        EditText latStart=findViewById(R.id.txStartLatitude);
+        EditText longStart=findViewById(R.id.txStartLongitude);
+        String id = idStart.getText().toString();
+        double latitude = Double.parseDouble(latStart.getText().toString());
+        double longitude=Double.parseDouble(longStart.getText().toString());
+        course.start = (StepComposite) new StepCompositeFactory().createInstance(id,latitude,longitude);
+        return course;
     }
 }
