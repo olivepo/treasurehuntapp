@@ -46,7 +46,7 @@
             android:id="@+id/txtStepLat"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text=""></EditText>
+            android:text="" />
 
 
     </TableRow>
@@ -106,7 +106,7 @@
             android:id="@+id/TextView05"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Step max duration: "></TextView>
+            android:text="Step score given: "></TextView>
 
         <EditText
             android:id="@+id/txtStepScoreGiven"
