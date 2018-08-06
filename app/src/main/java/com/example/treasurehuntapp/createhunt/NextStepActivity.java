@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.treasurehuntapp.MapsActivity;
 import com.example.treasurehuntapp.R;
@@ -37,6 +38,8 @@ import treasurehunt.model.Riddle;
 import treasurehunt.model.Step;
 import treasurehunt.model.StepComposite;
 import treasurehunt.model.StepCompositeFactory;
+import treasurehunt.model.StepLeaf;
+import treasurehunt.model.StepLeafFactory;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 
@@ -130,7 +133,7 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
         }
 
-        initCourseFromUI(courseInCreation);
+        initLeafCourseFromUI(courseInCreation);
 
         mCourseTask=new CreateCourseTask(courseInCreation);
         mCourseTask.execute();
@@ -157,7 +160,7 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
         }
 
-        initCourseFromUI(courseInCreation);
+        initStepCourseFromUI(courseInCreation);
 
         try {
             bundle.putString("startCourse", mapper.writeValueAsString(courseInCreation));
@@ -172,7 +175,9 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         finish();
     }
 
-    private void initCourseFromUI(Course courseIncreation) {
+
+
+    private void initStepCourseFromUI(Course courseIncreation) {
 
         EditText stepId = findViewById(R.id.txtStepId);
         String id = stepId.getText().toString();
@@ -221,10 +226,79 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         answerChoiceTwo.isValid = checkBoxTwo.isChecked();
         step.riddle.answerChoices.add(answerChoiceTwo);
 
-        if (courseIncreation.start.getNextStepsIds().isEmpty()) {
-            courseIncreation.start.addStep(step);
+
+        // ajout comme suivante à la dernière étape créée
+        appContext.courseInCreationLastCreatedStep.addStep(step);
+        if (step instanceof StepComposite) {
+            appContext.courseInCreationLastCreatedStep = step; // l'étape créée devient la nouvelle dernière étape créée.
         }
-        CourseStepsIterator it = new CourseStepsIterator(courseIncreation);
+
+
+
+
+
+
+    }
+
+    private void initLeafCourseFromUI(Course courseIncreation) {
+
+        EditText stepId = findViewById(R.id.txtStepId);
+        String id = stepId.getText().toString();
+
+        EditText stepLat = findViewById(R.id.txtStepLat);
+        double latitude = Double.parseDouble(stepLat.getText().toString());
+
+        EditText stepLong = findViewById(R.id.txtStepLong);
+        double longitude = Double.parseDouble(stepLong.getText().toString());
+
+        StepLeaf step = (StepLeaf) new StepLeafFactory().createInstance(id, latitude, longitude);
+
+        EditText stepDescription = findViewById(R.id.txtStepDescription);
+        step.description = stepDescription.getText().toString();
+
+        EditText stepMaxDuration = findViewById(R.id.txtStepMaxDur);
+        step.maximumDurationInMinutes = Integer.parseInt(stepMaxDuration.getText().toString());
+
+        EditText stepScoreGiven = findViewById(R.id.txtStepScoreGiven);
+        step.scorePointsGivenIfSuccess = Integer.parseInt(stepScoreGiven.getText().toString());
+
+        step.riddle = new Riddle();
+
+        EditText stepRiddleText = findViewById(R.id.txtRidlleText);
+        step.riddle.text = stepRiddleText.getText().toString();
+
+        EditText stepRiddleJokerTxt = findViewById(R.id.txtRidlleJokerText);
+        step.riddle.jokerText = stepRiddleJokerTxt.getText().toString();
+
+        CheckBox checkBox = findViewById(R.id.checkBox);
+        step.riddle.isMCQ = checkBox.isChecked();
+
+        step.riddle.answerChoices = new ArrayList<AnswerChoice>();
+
+        EditText stepRiddleAnswerOne = findViewById(R.id.txtRidlleAnswerOne);
+        AnswerChoice answerChoiceOne = new AnswerChoice();
+        answerChoiceOne.text = stepRiddleAnswerOne.getText().toString();
+        CheckBox checkBoxOne = findViewById(R.id.checkBoxAnswerOne);
+        answerChoiceOne.isValid = checkBoxOne.isChecked();
+        step.riddle.answerChoices.add(answerChoiceOne);
+
+        EditText stepRiddleAnswerTwo = findViewById(R.id.txtRidlleAnswerTwo);
+        AnswerChoice answerChoiceTwo = new AnswerChoice();
+        answerChoiceTwo.text = stepRiddleAnswerTwo.getText().toString();
+        CheckBox checkBoxTwo = findViewById(R.id.checkBoxAnswerTwo);
+        answerChoiceTwo.isValid = checkBoxTwo.isChecked();
+        step.riddle.answerChoices.add(answerChoiceTwo);
+
+
+        // ajout comme suivante à la dernière étape créée
+        appContext.courseInCreationLastCreatedStep.addStep(step);
+        if (step instanceof StepLeaf) {
+      //      appContext.courseInCreationLastCreatedStep = step; // l'étape créée devient la nouvelle dernière étape créée.
+        }
+
+
+
+
 
 
     }
@@ -258,17 +332,17 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
         @Override
         protected void onPostExecute(final Boolean success) {
-            course = null;
+            mCourseTask = null;
             //   showProgress(false);
 
             if (success) {
-
+                Toast.makeText(NextStepActivity.this, "la chasse "+course.name+" is created :", Toast.LENGTH_LONG).show();
             }
         }
 
 
         protected void onCancelled() {
-
+            mCourseTask = null;
             //  showProgress(false);
         }
     }

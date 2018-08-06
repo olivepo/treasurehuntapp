@@ -57,43 +57,17 @@ import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, GoogleMap.OnMarkerClickListener {
 
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private static final int REQUEST_CHECK_SETTINGS = 2;
+    private static final int REQUEST_CHECK_SETTINGS = 920;
     private static final String REQUESTING_LOCATION_UPDATES_KEY = "";
     private static final int LOCATION = 2;
     private GoogleMap mMap;
-    GoogleApiClient mGoogleApiClient;
+
     private FusedLocationProviderClient mFusedLocationClient;
+
     private Location mLastLocation;
     private LocationRequest mLocationRequest = new LocationRequest();
-    LocationCallback mLocationCallback = new LocationCallback(){
-        @Override
-        public void onLocationResult(LocationResult locationResult) {
-            if (locationResult == null) {
-                return;
-            }
-            for (Location location : locationResult.getLocations()) {
-                if (null!=location&&null!=mLastLocation) {
-                    if (location.distanceTo(mLastLocation) > Configuration.RadiusInMetres) {
-                        mNearestCourseTask = new NearestCourseTask(location.getLatitude(), location.getLongitude());
-                        mNearestCourseTask.execute();
-                    }
-                }
-                if (null!=mLastLocation){
-                    mLastLocation = location;
-                }
-
-                    // Update UI with location data
-                    // ...
-                 /*   LatLng updateLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    mMap.addMarker(new MarkerOptions().position(updateLatLng).title("location update"));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(updateLatLng, 17));*/
-
-            }
-        };
-
-    };
-
-    private boolean mRequestingLocationUpdates = true;
+    private LocationCallback mLocationCallback;
+    private boolean mRequestingLocationUpdates;
 
     private HashMap<String,Course> markersCourse = new HashMap<String,Course>(); // key = markerId, value = course
 
@@ -130,11 +104,37 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
 
+                for (Location location : locationResult.getLocations()) {
+                    if (null!=location&&null!=mLastLocation&&location.distanceTo(mLastLocation)>Configuration.RadiusInMetres){
+                        mNearestCourseTask=new NearestCourseTask(location.getLatitude(),location.getLongitude());
+                        mNearestCourseTask.execute();
+                    }
+                    if (null!=mLastLocation){
+                       mLastLocation=location;
+                    }
 
+                }
 
+            }
+
+        };
 
     }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        getCurrentLocationSettings();
+    }
+
 
     /**
      * Manipulates the map once available.
@@ -148,6 +148,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
 
         mMap = googleMap;
         setUpMap();
@@ -187,7 +188,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMarkerClickListener(this);
 
         getLastLocation();
-        getCurrentLocationSettings();
+    //    getCurrentLocationSettings();
 
 
     }
@@ -229,7 +230,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        startLocationUpdates();
+
     }
 
     @Override
@@ -261,6 +262,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // location requests here.
                 // ...
                 Toast.makeText(MapsActivity.this, "succes  : " + LocationRequest.PRIORITY_HIGH_ACCURACY, Toast.LENGTH_LONG).show();
+                mRequestingLocationUpdates=true;
+                startLocationUpdates();
             }
         });
 
@@ -293,20 +296,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (mRequestingLocationUpdates) {
             startLocationUpdates();
         }
-        else{
-            buildGoogleApiClient();
-        }
     }
-
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        mGoogleApiClient.connect();
-    }
-
 
     @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
@@ -395,10 +385,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         intent.putExtras(bundle);
         startActivity(intent);
-        if (mFusedLocationClient != null) {
+     /*   if (mFusedLocationClient != null) {
             mFusedLocationClient.removeLocationUpdates(mLocationCallback);
-        }
-        finish();
+        }*/
+    //    finish();
     }
 
     public void nextStep(View view) {
@@ -419,9 +409,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             intent.putExtras(bundle);
             startActivity(intent);
-            if (mFusedLocationClient != null) {
+     /*       if (mFusedLocationClient != null) {
                 mFusedLocationClient.removeLocationUpdates(mLocationCallback);
-            }
+            }*/
             finish();
         }
     }
@@ -444,6 +434,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mFusedLocationClient.removeLocationUpdates(mLocationCallback);
         }
     }
+
 
     @Override
     public boolean onMarkerClick(Marker marker) {

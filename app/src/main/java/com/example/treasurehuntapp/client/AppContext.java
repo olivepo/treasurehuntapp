@@ -10,6 +10,7 @@ import java.util.List;
 import treasurehunt.model.Account;
 import treasurehunt.client.Configuration;
 import treasurehunt.model.Course;
+import treasurehunt.model.StepComposite;
 
 public class AppContext {
 
@@ -18,11 +19,13 @@ public class AppContext {
     private RequestQueue mRequestQueue;
     public Account account;
     public List<Course> nearestCourse;
+    public StepComposite courseInCreationLastCreatedStep;
 
     private AppContext(Context context) {
         mCtx = context.getApplicationContext();
         mRequestQueue = getRequestQueue();
         account = null;
+
     }
 
     public static synchronized AppContext getInstance(Context context) {

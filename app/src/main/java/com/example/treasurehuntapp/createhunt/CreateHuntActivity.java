@@ -1,6 +1,7 @@
 package com.example.treasurehuntapp.createhunt;
 
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -10,8 +11,14 @@ import android.widget.EditText;
 import com.example.treasurehuntapp.MapsActivity;
 import com.example.treasurehuntapp.R;
 import com.example.treasurehuntapp.RunthroughActivity;
+import com.example.treasurehuntapp.client.AppContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +30,14 @@ import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 public class CreateHuntActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private LocationCallback mLocationCallback;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private Location mLastLocation;
+    private LocationRequest mLocationRequest = new LocationRequest();
+    private AppContext appContext;
+
+    private boolean mRequestingLocationUpdates = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,6 +47,10 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
         cont.setOnClickListener(this);
 
         init();
+
+        // mise à null lors du début de création , à itinitaliser avec course.start par la suite
+        appContext = AppContext.getInstance(CreateHuntActivity.this);
+        appContext.courseInCreationLastCreatedStep = null;
 
     }
 
@@ -120,6 +139,9 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
         double latitude = Double.parseDouble(latStart.getText().toString());
         double longitude=Double.parseDouble(longStart.getText().toString());
         course.start = (StepComposite) new StepCompositeFactory().createInstance(id,latitude,longitude);
+        appContext.courseInCreationLastCreatedStep = course.start;
         return course;
     }
+
+
 }
