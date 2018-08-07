@@ -1,31 +1,45 @@
 package com.example.treasurehuntapp;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.treasurehuntapp.R;
 import com.example.treasurehuntapp.client.AppContext;
 import com.example.treasurehuntapp.client.AppPermissions;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
+import treasurehunt.client.RunThroughRESTMethods;
 import treasurehunt.model.Course;
 import treasurehunt.model.RunThrough;
+import treasurehunt.model.StepComposite;
+import treasurehunt.model.StepLeaf;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 /**
@@ -51,7 +65,7 @@ public class RunthroughActivity extends AppCompatActivity {
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
-    private View mContentView;
+    private TextView stepDescription;
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
         @Override
@@ -61,7 +75,7 @@ public class RunthroughActivity extends AppCompatActivity {
             // Note that some of these constants are new as of API 16 (Jelly Bean)
             // and API 19 (KitKat). It is safe to use them, as they are inlined
             // at compile-time and do nothing on earlier devices.
-            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+            stepDescription.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
@@ -111,12 +125,14 @@ public class RunthroughActivity extends AppCompatActivity {
 
     // service de localisation
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final int REQUEST_CHECK_SETTINGS = 2;
     private FusedLocationProviderClient mFusedLocationClient;
-    private Location mLastLocation;
     private LocationRequest mLocationRequest = new LocationRequest();
     private LocationCallback mLocationCallback;
     private boolean mRequestingLocationUpdates = true;
 
+    // résolution de l'enigme une fois une étape atteinte physiquement
+    static final int RIDDLE_ANSWER_REQUEST_CODE = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -130,12 +146,12 @@ public class RunthroughActivity extends AppCompatActivity {
 
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
-        mContentView = findViewById(R.id.fullscreen_content);
+        stepDescription = findViewById(R.id.stepDescription);
 
         // initialisation de variables : le joueur est invité à se présenter à l'étape de départ, la course démarrera réellement lorsque
         // celui-ci sera sur zone et aura déclaré être prêt.
 
-        //récupération de la course fournie en paramètre
+        // récupération de la course fournie en paramètre
         Bundle bundle = getIntent().getExtras();
         ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
         if (bundle == null) {
@@ -153,11 +169,13 @@ public class RunthroughActivity extends AppCompatActivity {
         runThrough.accountEmail = appContext.account.email;
         runThrough.courseId = course.id;
         runThrough.setCurrentStep(course.start);
-
         // fin initialisation des variables
 
+        setTitle(String.format("Parcours de %s",course.name));
+        showCurrentStepInfo();
+
         // Set up the user interaction to manually show or hide the system UI.
-        mContentView.setOnClickListener(new View.OnClickListener() {
+        stepDescription.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 toggle();
@@ -168,10 +186,27 @@ public class RunthroughActivity extends AppCompatActivity {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    // dix mètres de proximité
+                    Toast.makeText(RunthroughActivity.this,String.valueOf(location.distanceTo(buildCurrentStepLocation())),Toast.LENGTH_LONG);
+                    if (location.distanceTo(buildCurrentStepLocation()) <= 10){
+                        // demander à l'utilisateur la résolution de l'énigme et stopper l'abonnement au service de localisation
+                        stopLocationUpdates();
+                        showCurrentRiddleToUser();
+                    }
+                }
+            }
 
+        };
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        defLocUpdateCallBack();
+        getCurrentLocationSettings();
     }
 
     @Override
@@ -182,6 +217,14 @@ public class RunthroughActivity extends AppCompatActivity {
         // created, to briefly hint to the user that UI controls
         // are available.
         delayedHide(100);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
     }
 
     private void toggle() {
@@ -209,7 +252,7 @@ public class RunthroughActivity extends AppCompatActivity {
     @SuppressLint("InlinedApi")
     private void show() {
         // Show the system bar
-        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        stepDescription.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         mVisible = true;
 
@@ -252,23 +295,109 @@ public class RunthroughActivity extends AppCompatActivity {
         }
     }
 
-    private void defLocUpdateCallBack() {
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    return;
-                }
-                for (Location location : locationResult.getLocations()) {
-                    // dix mètres de proximité
-                    if (location.distanceTo(buildCurrentStepLocation())> 10){
+    private void getCurrentLocationSettings() {
+        mLocationRequest = createLocationRequest();
 
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+
+
+        SettingsClient client = LocationServices.getSettingsClient(this);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+
+        task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
+            @Override
+            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                // All location settings are satisfied. The client can initialize
+                // location requests here.
+                // ...
+                Toast.makeText(RunthroughActivity.this, "succes  : " + LocationRequest.PRIORITY_HIGH_ACCURACY, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        task.addOnFailureListener(this, new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                if (e instanceof ResolvableApiException) {
+                    // Location settings are not satisfied, but this can be fixed
+                    // by showing the user a dialog.
+                    try {
+                        // Show the dialog by calling startResolutionForResult(),
+                        // and check the result in onActivityResult().
+                        Toast.makeText(RunthroughActivity.this, "failure  : " + e.toString(), Toast.LENGTH_LONG).show();
+                        ResolvableApiException resolvable = (ResolvableApiException) e;
+                        resolvable.startResolutionForResult(RunthroughActivity.this,
+                                REQUEST_CHECK_SETTINGS);
+                    } catch (IntentSender.SendIntentException sendEx) {
+                        // Ignore the error.
                     }
-                    mLastLocation=location;
                 }
             }
+        });
 
-        };
+    }
+
+    protected LocationRequest createLocationRequest() {
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        return mLocationRequest;
+    }
+
+    @SuppressLint("MissingPermission")
+    private void startLocationUpdates() {
+        mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                mLocationCallback,
+                null /* Looper */);
+    }
+
+    @SuppressLint("MissingPermission")
+    private void stopLocationUpdates() {
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+    }
+
+    private void showCurrentRiddleToUser() {
+        // lancer le parcours d'une course
+        Intent intent = new Intent(RunthroughActivity.this, RiddleActivity.class);
+        Bundle bundle = new Bundle();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+        try {
+            bundle.putString("serializedRiddle", mapper.writeValueAsString(runThrough.getCurrentStep().riddle));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return;
+        }
+        intent.putExtras(bundle);
+        startActivityForResult(intent,RIDDLE_ANSWER_REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == RIDDLE_ANSWER_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                runThrough.validateCurrentStepResolution(LocalDateTime.now(), data.getBooleanExtra("jokerUsed",false));
+            } else {
+                runThrough.validateCurrentStepResolution(LocalDateTime.now(), true);
+            }
+        }
+        if (runThrough.getCurrentStep() instanceof StepLeaf) {
+            // course terminée !
+            try {
+                RunThroughRESTMethods.put(appContext.getRequestQueue(),runThrough);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            finish();
+        } else {
+            // passer à l'étape suivante
+            StepComposite currentStep = (StepComposite) runThrough.getCurrentStep();
+            // ici il faut proposer le choix de l'étape à suivre
+            runThrough.setCurrentStep(currentStep.getNextStep(currentStep.getNextStepsIds().iterator().next()));
+            showCurrentStepInfo();
+            // reprise de l'abonnement au service de localisation
+            startLocationUpdates();
+        }
+
     }
 
     private Location buildCurrentStepLocation() {
@@ -276,5 +405,9 @@ public class RunthroughActivity extends AppCompatActivity {
         result.setLatitude(runThrough.getCurrentStep().latitude);
         result.setLongitude(runThrough.getCurrentStep().longitude);
         return result;
+    }
+
+    private void showCurrentStepInfo() {
+        stepDescription.setText(runThrough.getCurrentStep().description);
     }
 }

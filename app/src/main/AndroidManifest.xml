@@ -49,14 +49,14 @@
             </intent-filter>
         </activity>
         <activity
-        android:name=".createhunt.CreateHuntActivity"
-        android:label="Create Hunt">
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW" />
+            android:name=".createhunt.CreateHuntActivity"
+            android:label="Create Hunt">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
 
-            <category android:name="android.intent.category.DEFAULT" />
-        </intent-filter>
-    </activity>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".createhunt.NextStepActivity"
             android:label="Next Step">
@@ -79,7 +79,8 @@
             android:name=".RunthroughActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_runthrough"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
+        <activity android:name=".RiddleActivity"></activity>
     </application>
 
 </manifest>
