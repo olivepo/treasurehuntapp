@@ -494,7 +494,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected void onPostExecute(final Boolean success) {
             mNearestCourseTask = null;
          //   showProgress(false);
-
             if (success) {
                 appContext.nearestCourse = listCourses;
                 for (Course course : listCourses){
@@ -503,7 +502,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Marker marker = mMap.addMarker(new MarkerOptions()
                             .position(courseLatLong)
                             .title(course.name)
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.tresor))
+                            );
                     markersCourse.put(marker.getId(),course);
                 }
             }
