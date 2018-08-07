@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.treasurehuntapp.MapsActivity;
 import com.example.treasurehuntapp.R;
@@ -25,6 +26,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import Utils.DateUtils;
@@ -37,6 +39,8 @@ import treasurehunt.model.Riddle;
 import treasurehunt.model.Step;
 import treasurehunt.model.StepComposite;
 import treasurehunt.model.StepCompositeFactory;
+import treasurehunt.model.StepLeaf;
+import treasurehunt.model.StepLeafFactory;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 
@@ -53,6 +57,7 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_next_step);
 
         appContext = AppContext.getInstance(NextStepActivity.this);
+        appContext.stepsMap =new HashMap<>();
 
         Button nextStepButton = findViewById(R.id.nextStepButton);
         nextStepButton.setOnClickListener(this);
@@ -130,7 +135,7 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
         }
 
-        initCourseFromUI(courseInCreation);
+        initLeafCourseFromUI(courseInCreation);
 
         mCourseTask=new CreateCourseTask(courseInCreation);
         mCourseTask.execute();
@@ -157,7 +162,7 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
         }
 
-        initCourseFromUI(courseInCreation);
+        initStepCourseFromUI(courseInCreation);
 
         try {
             bundle.putString("startCourse", mapper.writeValueAsString(courseInCreation));
@@ -172,7 +177,9 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         finish();
     }
 
-    private void initCourseFromUI(Course courseIncreation) {
+
+
+    private void initStepCourseFromUI(Course courseIncreation) {
 
         EditText stepId = findViewById(R.id.txtStepId);
         String id = stepId.getText().toString();
@@ -221,10 +228,92 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         answerChoiceTwo.isValid = checkBoxTwo.isChecked();
         step.riddle.answerChoices.add(answerChoiceTwo);
 
-        if (courseIncreation.start.getNextStepsIds().isEmpty()) {
+
+        // ajout comme suivante à la dernière étape créée
+       // appContext.courseInCreationLastCreatedStep.addStep(step);
+
+        appContext.stepsMap.put(appContext.nbStep,step);
+        appContext.nbStep++;
+
+
+
+       /* if (step instanceof StepComposite) {
+            appContext.courseInCreationLastCreatedStep = step; // l'étape créée devient la nouvelle dernière étape créée.
+        }*/
+
+
+
+
+
+
+    }
+
+    private void initLeafCourseFromUI(Course courseIncreation) {
+
+        EditText stepId = findViewById(R.id.txtStepId);
+        String id = stepId.getText().toString();
+
+        EditText stepLat = findViewById(R.id.txtStepLat);
+        double latitude = Double.parseDouble(stepLat.getText().toString());
+
+        EditText stepLong = findViewById(R.id.txtStepLong);
+        double longitude = Double.parseDouble(stepLong.getText().toString());
+
+        StepLeaf step = (StepLeaf) new StepLeafFactory().createInstance(id, latitude, longitude);
+
+        EditText stepDescription = findViewById(R.id.txtStepDescription);
+        step.description = stepDescription.getText().toString();
+
+        EditText stepMaxDuration = findViewById(R.id.txtStepMaxDur);
+        step.maximumDurationInMinutes = Integer.parseInt(stepMaxDuration.getText().toString());
+
+        EditText stepScoreGiven = findViewById(R.id.txtStepScoreGiven);
+        step.scorePointsGivenIfSuccess = Integer.parseInt(stepScoreGiven.getText().toString());
+
+        step.riddle = new Riddle();
+
+        EditText stepRiddleText = findViewById(R.id.txtRidlleText);
+        step.riddle.text = stepRiddleText.getText().toString();
+
+        EditText stepRiddleJokerTxt = findViewById(R.id.txtRidlleJokerText);
+        step.riddle.jokerText = stepRiddleJokerTxt.getText().toString();
+
+        CheckBox checkBox = findViewById(R.id.checkBox);
+        step.riddle.isMCQ = checkBox.isChecked();
+
+        step.riddle.answerChoices = new ArrayList<AnswerChoice>();
+
+        EditText stepRiddleAnswerOne = findViewById(R.id.txtRidlleAnswerOne);
+        AnswerChoice answerChoiceOne = new AnswerChoice();
+        answerChoiceOne.text = stepRiddleAnswerOne.getText().toString();
+        CheckBox checkBoxOne = findViewById(R.id.checkBoxAnswerOne);
+        answerChoiceOne.isValid = checkBoxOne.isChecked();
+        step.riddle.answerChoices.add(answerChoiceOne);
+
+        EditText stepRiddleAnswerTwo = findViewById(R.id.txtRidlleAnswerTwo);
+        AnswerChoice answerChoiceTwo = new AnswerChoice();
+        answerChoiceTwo.text = stepRiddleAnswerTwo.getText().toString();
+        CheckBox checkBoxTwo = findViewById(R.id.checkBoxAnswerTwo);
+        answerChoiceTwo.isValid = checkBoxTwo.isChecked();
+        step.riddle.answerChoices.add(answerChoiceTwo);
+
+
+        //on ajoute les steps suivants pour chacun
+        for (int i = 0; i< appContext.stepsMap.size(); ++i)
+            if (appContext.stepsMap.containsKey(i)&&appContext.stepsMap.containsKey(i+1)){
+            appContext.stepsMap.get(i).addStep(appContext.stepsMap.get(i+1));
+            }
+            else{
+                appContext.stepsMap.get(i).addStep(step);
+            }
+
+        //si la map est vide, start a pour suivant stepLeaf
+        if (appContext.stepsMap.size()==0)  {
             courseIncreation.start.addStep(step);
         }
-        CourseStepsIterator it = new CourseStepsIterator(courseIncreation);
+        else{
+            courseIncreation.start.addStep(appContext.stepsMap.get(0));
+        }
 
 
     }
@@ -258,17 +347,25 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
         @Override
         protected void onPostExecute(final Boolean success) {
-            course = null;
+            mCourseTask = null;
             //   showProgress(false);
 
             if (success) {
+                Toast.makeText(NextStepActivity.this, "la chasse "+course.name+" is created :", Toast.LENGTH_LONG).show();
+                Bundle bundle = getIntent().getExtras();
+                ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+                try {
+                    bundle.putString("startCourse", mapper.writeValueAsString(new Course()));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
 
             }
         }
 
 
         protected void onCancelled() {
-
+            mCourseTask = null;
             //  showProgress(false);
         }
     }

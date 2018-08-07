@@ -6,10 +6,13 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
 import java.util.List;
+import java.util.Map;
 
 import treasurehunt.model.Account;
 import treasurehunt.client.Configuration;
 import treasurehunt.model.Course;
+import treasurehunt.model.Step;
+import treasurehunt.model.StepComposite;
 
 public class AppContext {
 
@@ -18,11 +21,15 @@ public class AppContext {
     private RequestQueue mRequestQueue;
     public Account account;
     public List<Course> nearestCourse;
+    public Map<Integer, StepComposite> stepsMap;
+    public int nbStep=0;
+
 
     private AppContext(Context context) {
         mCtx = context.getApplicationContext();
         mRequestQueue = getRequestQueue();
         account = null;
+
     }
 
     public static synchronized AppContext getInstance(Context context) {
