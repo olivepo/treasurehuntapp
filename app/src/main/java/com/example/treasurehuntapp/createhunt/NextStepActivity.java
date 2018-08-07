@@ -26,6 +26,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import Utils.DateUtils;
@@ -56,6 +57,7 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_next_step);
 
         appContext = AppContext.getInstance(NextStepActivity.this);
+        appContext.stepsMap =new HashMap<>();
 
         Button nextStepButton = findViewById(R.id.nextStepButton);
         nextStepButton.setOnClickListener(this);
@@ -228,10 +230,16 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
 
         // ajout comme suivante à la dernière étape créée
-        appContext.courseInCreationLastCreatedStep.addStep(step);
-        if (step instanceof StepComposite) {
+       // appContext.courseInCreationLastCreatedStep.addStep(step);
+
+        appContext.stepsMap.put(appContext.nbStep,step);
+        appContext.nbStep++;
+
+
+
+       /* if (step instanceof StepComposite) {
             appContext.courseInCreationLastCreatedStep = step; // l'étape créée devient la nouvelle dernière étape créée.
-        }
+        }*/
 
 
 
@@ -290,15 +298,22 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         step.riddle.answerChoices.add(answerChoiceTwo);
 
 
-        // ajout comme suivante à la dernière étape créée
-        appContext.courseInCreationLastCreatedStep.addStep(step);
-        if (step instanceof StepLeaf) {
-      //      appContext.courseInCreationLastCreatedStep = step; // l'étape créée devient la nouvelle dernière étape créée.
+        //on ajoute les steps suivants pour chacun
+        for (int i = 0; i< appContext.stepsMap.size(); ++i)
+            if (appContext.stepsMap.containsKey(i)&&appContext.stepsMap.containsKey(i+1)){
+            appContext.stepsMap.get(i).addStep(appContext.stepsMap.get(i+1));
+            }
+            else{
+                appContext.stepsMap.get(i).addStep(step);
+            }
+
+        //si la map est vide, start a pour suivant stepLeaf
+        if (appContext.stepsMap.size()==0)  {
+            courseIncreation.start.addStep(step);
         }
-
-
-
-
+        else{
+            courseIncreation.start.addStep(appContext.stepsMap.get(0));
+        }
 
 
     }
@@ -337,6 +352,14 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
             if (success) {
                 Toast.makeText(NextStepActivity.this, "la chasse "+course.name+" is created :", Toast.LENGTH_LONG).show();
+                Bundle bundle = getIntent().getExtras();
+                ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+                try {
+                    bundle.putString("startCourse", mapper.writeValueAsString(new Course()));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+
             }
         }
 

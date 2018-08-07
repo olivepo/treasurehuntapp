@@ -30,13 +30,10 @@ import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 public class CreateHuntActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private LocationCallback mLocationCallback;
-    private FusedLocationProviderClient mFusedLocationClient;
-    private Location mLastLocation;
-    private LocationRequest mLocationRequest = new LocationRequest();
+
     private AppContext appContext;
 
-    private boolean mRequestingLocationUpdates = true;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,9 +45,7 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
 
         init();
 
-        // mise à null lors du début de création , à itinitaliser avec course.start par la suite
         appContext = AppContext.getInstance(CreateHuntActivity.this);
-        appContext.courseInCreationLastCreatedStep = null;
 
     }
 
@@ -139,7 +134,6 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
         double latitude = Double.parseDouble(latStart.getText().toString());
         double longitude=Double.parseDouble(longStart.getText().toString());
         course.start = (StepComposite) new StepCompositeFactory().createInstance(id,latitude,longitude);
-        appContext.courseInCreationLastCreatedStep = course.start;
         return course;
     }
 
