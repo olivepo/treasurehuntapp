@@ -144,7 +144,9 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         mCourseTask.execute();
 
         //enregistrement dans la base sqlite
-    /*    CourseLiteManager courseLiteManager = new CourseLiteManager(this);
+        CourseLiteManager courseLiteManager = new CourseLiteManager(this);
+        courseLiteManager.open();
+
         String courseString= null;
         try {
             courseString = mapper.writeValueAsString(courseInCreation);
@@ -153,7 +155,7 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         }
         String id=courseInCreation.id;
         CourseLite courseLite = new CourseLite(id,courseString);
-        courseLiteManager.addCourse(courseLite);*/
+        courseLiteManager.addCourse(courseLite);
 
         startActivity(intent);
 
