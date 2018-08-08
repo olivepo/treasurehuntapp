@@ -439,17 +439,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public boolean onMarkerClick(Marker marker) {
         // lancer le parcours d'une course
-        Intent intent = new Intent(MapsActivity.this, RunthroughActivity.class);
-        Bundle bundle = new Bundle();
-        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
-        try {
-            bundle.putString("serializedCourse", mapper.writeValueAsString(markersCourse.get(marker.getId())));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return false;
+        if (markersCourse.containsKey(marker.getId())) {
+            Intent intent = new Intent(MapsActivity.this, RunthroughActivity.class);
+            Bundle bundle = new Bundle();
+            ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+            try {
+                bundle.putString("serializedCourse", mapper.writeValueAsString(markersCourse.get(marker.getId())));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return false;
+            }
+            intent.putExtras(bundle);
+            startActivity(intent);
         }
-        intent.putExtras(bundle);
-        startActivity(intent);
         return true;
     }
 

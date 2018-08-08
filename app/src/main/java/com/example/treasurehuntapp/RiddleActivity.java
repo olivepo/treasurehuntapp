@@ -3,6 +3,7 @@ package com.example.treasurehuntapp;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -40,11 +41,13 @@ public class RiddleActivity extends AppCompatActivity {
         // récupération de l'énigme
         Bundle bundle = getIntent().getExtras();
         ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+        int jokersLeft = 0;
         if (bundle == null) {
             finish();
         }
         else
         {
+            jokersLeft = bundle.getInt("jokersLeft");
             try {
                 riddle = mapper.readValue(bundle.getString("serializedRiddle"),Riddle.class);
             } catch (IOException e) {
@@ -56,16 +59,24 @@ public class RiddleActivity extends AppCompatActivity {
         setTitle("Etape atteinte !");
         TextView riddleText = findViewById(R.id.riddleText);
         riddleText.setText(riddle.text);
-        ListView answersListView = findViewById(R.id.answersListView);
-        answersListView.setAdapter(new CustomAdapter((ArrayList<AnswerChoice>) riddle.answerChoices, RiddleActivity.this));
-        answersListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        Button useJoker = findViewById(R.id.useJoker);
+        if (jokersLeft > 0) {
+            useJoker.setText(String.format("Utiliser un joker (%d restant)",jokersLeft));
+        } else {
+            useJoker.setAlpha(.5f);
+            useJoker.setClickable(false);
+        }
+        useJoker.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-
+            public void onClick(View view) {
+                resultIntent.putExtra("jokerUsed", true);
+                setResult(Activity.RESULT_CANCELED, resultIntent);
+                finish();
             }
         });
+
+        ListView answersListView = findViewById(R.id.answersListView);
+        answersListView.setAdapter(new CustomAdapter((ArrayList<AnswerChoice>) riddle.answerChoices, RiddleActivity.this));
 
         // réponse par défaut
         resultIntent = new Intent();
@@ -118,18 +129,24 @@ public class RiddleActivity extends AppCompatActivity {
                     View parentView = (View) v.getParent();
                     EditText isAnswerValid = parentView.findViewById(R.id.isAnswerValid);
 
-                    boolean isValid = isAnswerValid.getText().equals("1");
+                    boolean isValid = isAnswerValid.getText().toString().equals("1");
+
+                    // préparation de l'intent de resultat
+                    resultIntent.putExtra("jokerUsed", false);
+                    setResult((isValid ? Activity.RESULT_OK : Activity.RESULT_CANCELED), resultIntent);
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(RiddleActivity.this);
                     builder.setMessage((isValid ? "Bonne réponse :-)" : "Mauvaise réponse :-/"))
                             .setCancelable(false)
-                            .setPositiveButton("OK", null);
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    finish();
+                                }
+                            });
                     AlertDialog alert = builder.create();
                     alert.show();
 
-                    resultIntent.putExtra("jokerUsed", false);
-                    setResult((isValid ? Activity.RESULT_OK : Activity.RESULT_CANCELED), resultIntent);
-                    finish();
                 }
             });
 

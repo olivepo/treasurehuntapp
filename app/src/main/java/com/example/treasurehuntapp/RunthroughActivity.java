@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +13,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,7 +59,7 @@ public class RunthroughActivity extends AppCompatActivity {
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
      * user interaction before hiding the system UI.
      */
-    private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
+    private static final int AUTO_HIDE_DELAY_MILLIS = 1000;
 
     /**
      * Some older devices needs a small delay between UI widget updates
@@ -129,10 +131,12 @@ public class RunthroughActivity extends AppCompatActivity {
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationRequest mLocationRequest = new LocationRequest();
     private LocationCallback mLocationCallback;
-    private boolean mRequestingLocationUpdates = true;
 
     // résolution de l'enigme une fois une étape atteinte physiquement
     static final int RIDDLE_ANSWER_REQUEST_CODE = 1;
+
+    private Button finishRunThrough;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -147,6 +151,14 @@ public class RunthroughActivity extends AppCompatActivity {
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         stepDescription = findViewById(R.id.stepDescription);
+        finishRunThrough = findViewById(R.id.finishRunThrough);
+        finishRunThrough.setVisibility(View.GONE);
+        finishRunThrough.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
 
         // initialisation de variables : le joueur est invité à se présenter à l'étape de départ, la course démarrera réellement lorsque
         // celui-ci sera sur zone et aura déclaré être prêt.
@@ -185,7 +197,7 @@ public class RunthroughActivity extends AppCompatActivity {
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
-        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+        findViewById(R.id.backToFullScreen).setOnTouchListener(mDelayHideTouchListener);
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -207,6 +219,7 @@ public class RunthroughActivity extends AppCompatActivity {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         getCurrentLocationSettings();
+        startLocationUpdates();
     }
 
     @Override
@@ -217,14 +230,6 @@ public class RunthroughActivity extends AppCompatActivity {
         // created, to briefly hint to the user that UI controls
         // are available.
         delayedHide(100);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (mRequestingLocationUpdates) {
-            startLocationUpdates();
-        }
     }
 
     private void toggle() {
@@ -338,7 +343,7 @@ public class RunthroughActivity extends AppCompatActivity {
     }
 
     protected LocationRequest createLocationRequest() {
-        mLocationRequest.setInterval(10000);
+        mLocationRequest.setInterval(7000);
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return mLocationRequest;
@@ -360,6 +365,7 @@ public class RunthroughActivity extends AppCompatActivity {
         // lancer le parcours d'une course
         Intent intent = new Intent(RunthroughActivity.this, RiddleActivity.class);
         Bundle bundle = new Bundle();
+        bundle.putInt("jokersLeft",(course.jokersAllowed - runThrough.getJokersUsed()));
         ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
         try {
             bundle.putString("serializedRiddle", mapper.writeValueAsString(runThrough.getCurrentStep().riddle));
@@ -382,12 +388,7 @@ public class RunthroughActivity extends AppCompatActivity {
         }
         if (runThrough.getCurrentStep() instanceof StepLeaf) {
             // course terminée !
-            try {
-                RunThroughRESTMethods.put(appContext.getRequestQueue(),runThrough);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            finish();
+            showEndedRunThroughInfo();
         } else {
             // passer à l'étape suivante
             StepComposite currentStep = (StepComposite) runThrough.getCurrentStep();
@@ -397,7 +398,9 @@ public class RunthroughActivity extends AppCompatActivity {
             // reprise de l'abonnement au service de localisation
             startLocationUpdates();
         }
-
+        // dans tous les cas il faut enregistrer les données de parcours
+        SendRunThroughTask sendTask = new SendRunThroughTask(runThrough);
+        sendTask.execute();
     }
 
     private Location buildCurrentStepLocation() {
@@ -409,5 +412,45 @@ public class RunthroughActivity extends AppCompatActivity {
 
     private void showCurrentStepInfo() {
         stepDescription.setText(runThrough.getCurrentStep().description);
+    }
+
+    private void showEndedRunThroughInfo() {
+        stepDescription.setText(String.format("Parcours terminé !\n\nVotre score : %d",runThrough.getScore()));
+        finishRunThrough.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Represents an asynchronous login/registration task used to get the nearest course
+     * the user.
+     */
+    private class SendRunThroughTask extends AsyncTask<Void, Void, Boolean> {
+
+        RunThrough runThroughToSend;
+
+        SendRunThroughTask(RunThrough runThroughToSend) {
+            this.runThroughToSend = runThroughToSend;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            try {
+                return RunThroughRESTMethods.put(appContext.getRequestQueue(),runThroughToSend);
+            } catch (Exception e) {
+                return false;
+            }
+            
+
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            Toast.makeText(RunthroughActivity.this, "Données de parcours envoyées", Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        protected void onCancelled() {
+
+        }
     }
 }
