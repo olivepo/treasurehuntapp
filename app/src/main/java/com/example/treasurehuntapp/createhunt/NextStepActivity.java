@@ -165,6 +165,8 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         String id=courseInCreation.id;
         CourseLite courseLite = new CourseLite(id,courseString);
         courseLiteManager.addCourse(courseLite);
+
+        courseLiteManager.close();
     }
 
     private void nextStep(View view) {
