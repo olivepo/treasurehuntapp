@@ -54,6 +54,7 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
     private NextStepActivity.CreateCourseTask mCourseTask;
 
 
+
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -144,6 +145,14 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         mCourseTask.execute();
 
         //enregistrement dans la base sqlite
+        putToSqliteDb(mapper, courseInCreation);
+
+        startActivity(intent);
+
+        finish();
+    }
+
+    private void putToSqliteDb(ObjectMapper mapper, Course courseInCreation) {
         CourseLiteManager courseLiteManager = new CourseLiteManager(this);
         courseLiteManager.open();
 
@@ -156,10 +165,6 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         String id=courseInCreation.id;
         CourseLite courseLite = new CourseLite(id,courseString);
         courseLiteManager.addCourse(courseLite);
-
-        startActivity(intent);
-
-        finish();
     }
 
     private void nextStep(View view) {
@@ -334,6 +339,7 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
 
     }
+
 
 
     /**
