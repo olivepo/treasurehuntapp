@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.example.treasurehuntapp.createhunt.NextStepActivity;
+
 public class CourseLiteManager {
 
     private static final String TABLE_NAME = "courseLite";
@@ -23,6 +25,8 @@ public class CourseLiteManager {
     {
         maBaseSQLite = MySQLite.getInstance(context);
     }
+
+   
 
     public void open()
     {

@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 
 import Utils.DateUtils;
 import treasurehunt.model.Course;
+import treasurehunt.model.Riddle;
 import treasurehunt.model.StepComposite;
 import treasurehunt.model.StepCompositeFactory;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
@@ -134,6 +135,9 @@ public class CreateHuntActivity extends AppCompatActivity implements View.OnClic
         double latitude = Double.parseDouble(latStart.getText().toString());
         double longitude=Double.parseDouble(longStart.getText().toString());
         course.start = (StepComposite) new StepCompositeFactory().createInstance(id,latitude,longitude);
+        EditText startDescription = findViewById(R.id.txStartStepDescription);
+        course.start.description=startDescription.getText().toString();
+        course.start.riddle=new Riddle();
         return course;
     }
 

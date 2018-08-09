@@ -125,10 +125,10 @@
             android:id="@+id/TextView06"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Start step id"></TextView>
+            android:text="Start step description"></TextView>
 
         <EditText
-            android:id="@+id/txStartStepId"
+            android:id="@+id/txStartStepDescription"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
@@ -147,13 +147,15 @@
             android:id="@+id/TextView07"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Start latitude: "></TextView>
+            android:text="Start step id"></TextView>
 
         <EditText
-            android:id="@+id/txStartLatitude"
+            android:id="@+id/txStartStepId"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text=""></EditText>
+
+
     </TableRow>
 
     <TableRow
@@ -165,6 +167,26 @@
 
         <TextView
             android:id="@+id/TextView08"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start latitude: "></TextView>
+
+        <EditText
+            android:id="@+id/txStartLatitude"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text=""></EditText>
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/TableRow09"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <TextView
+            android:id="@+id/TextView09"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Start longitude: "></TextView>
