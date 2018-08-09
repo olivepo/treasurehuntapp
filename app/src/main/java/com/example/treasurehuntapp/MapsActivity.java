@@ -2,6 +2,8 @@ package com.example.treasurehuntapp;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -51,7 +53,9 @@ import java.util.List;
 
 import treasurehunt.client.Configuration;
 import treasurehunt.client.CourseRESTMethods;
+import treasurehunt.client.RunThroughRESTMethods;
 import treasurehunt.model.Course;
+import treasurehunt.model.RunThrough;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, GoogleMap.OnMarkerClickListener {
@@ -440,17 +444,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean onMarkerClick(Marker marker) {
         // lancer le parcours d'une course
         if (markersCourse.containsKey(marker.getId())) {
-            Intent intent = new Intent(MapsActivity.this, RunthroughActivity.class);
-            Bundle bundle = new Bundle();
-            ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
-            try {
-                bundle.putString("serializedCourse", mapper.writeValueAsString(markersCourse.get(marker.getId())));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-                return false;
-            }
-            intent.putExtras(bundle);
-            startActivity(intent);
+            CheckRunThroughCourseExistsTask checkTask = new CheckRunThroughCourseExistsTask(appContext.account.email,
+                    markersCourse.get(marker.getId()));
+            checkTask.execute();
         }
         return true;
     }
@@ -460,6 +456,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    private void startCourse(Course course) {
+        Intent intent = new Intent(MapsActivity.this, RunthroughActivity.class);
+        Bundle bundle = new Bundle();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+        try {
+            bundle.putString("serializedCourse", mapper.writeValueAsString(course));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        intent.putExtras(bundle);
+        startActivity(intent);
+    }
 
     /**
      * Represents an asynchronous login/registration task used to get the nearest course
@@ -515,6 +523,57 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected void onCancelled() {
             mNearestCourseTask = null;
           //  showProgress(false);
+        }
+    }
+
+    /**
+     * Represents an asynchronous login/registration task used to get the nearest course
+     * the user.
+     */
+    private class CheckRunThroughCourseExistsTask extends AsyncTask<Void, Void, Boolean> {
+
+        private final String accountEmail;
+        private final Course course;
+        private boolean runThroughExists;
+
+        CheckRunThroughCourseExistsTask(String accountEmail, Course course) {
+            this.accountEmail = accountEmail;
+            this.course = course;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            RunThrough r = null;
+            try {
+                r = RunThroughRESTMethods.get(appContext.getRequestQueue(), accountEmail, course.id);
+            } catch (Exception e) {
+                return false;
+            }
+
+            runThroughExists = (r != null);
+            return true;
+
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            //   showProgress(false);
+            if (success && !runThroughExists) {
+                startCourse(course);
+            } else {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+                builder.setMessage("Vous avez déjà parcouru cette chasse !")
+                        .setCancelable(false)
+                        .setPositiveButton("OK", null);
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+
         }
     }
 }
