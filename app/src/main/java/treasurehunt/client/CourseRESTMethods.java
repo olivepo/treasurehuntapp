@@ -81,13 +81,17 @@ public class CourseRESTMethods {
         } catch (InterruptedException | ExecutionException  e) {
             if (VolleyError.class.isAssignableFrom(e.getCause().getClass())) {
                 VolleyError error = (VolleyError) e.getCause();
-                switch (error.networkResponse.statusCode) {
+                if (error.networkResponse == null) {
+                    return null;
+                } else {
+                    switch (error.networkResponse.statusCode) {
 
-                    case 204:
-                        return null;
+                        case 204:
+                            return null;
 
-                    default:
-                        throw new Exception("Failed : HTTP error code : " + error.networkResponse.statusCode);
+                        default:
+                            throw new Exception("Failed : HTTP error code : " + error.networkResponse.statusCode);
+                    }
                 }
             }
         }

@@ -178,8 +178,8 @@ public class RunthroughActivity extends AppCompatActivity {
                 finish();
             }
         }
-        runThrough.accountEmail = appContext.account.email;
-        runThrough.courseId = course.id;
+        runThrough.setAccountEmail(appContext.account.email);
+        runThrough.setCourseId(course.id);
         runThrough.setCurrentStep(course.start);
         // fin initialisation des variables
 

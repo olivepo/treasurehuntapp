@@ -66,12 +66,12 @@ public class RunThroughRESTMethods {
 
     }
 
-    public static RunThrough get(RequestQueue queue,String id) throws Exception {
+    public static RunThrough get(RequestQueue queue,String accountEmail,String courseId) throws Exception {
 
         String baseUrl = Configuration.baseUrl+serviceSuffix;
 
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET,baseUrl+"getRunThrough/"+id, new JSONObject(), future, future);
+        JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET,String.format(baseUrl+"getRunThrough/%s/%s",accountEmail,courseId), new JSONObject(), future, future);
         queue.add(getRequest);
         JSONObject response = null;
         try {
@@ -81,13 +81,17 @@ public class RunThroughRESTMethods {
         } catch (InterruptedException | ExecutionException  e) {
             if (VolleyError.class.isAssignableFrom(e.getCause().getClass())) {
                 VolleyError error = (VolleyError) e.getCause();
-                switch (error.networkResponse.statusCode) {
+                if (error.networkResponse == null) {
+                    return null;
+                } else {
+                    switch (error.networkResponse.statusCode) {
 
-                    case 204:
-                        return null;
+                        case 204:
+                            return null;
 
-                    default:
-                        throw new Exception("Failed : HTTP error code : " + error.networkResponse.statusCode);
+                        default:
+                            throw new Exception("Failed : HTTP error code : " + error.networkResponse.statusCode);
+                    }
                 }
             }
         }
@@ -96,12 +100,12 @@ public class RunThroughRESTMethods {
 
     }
 
-    public static boolean delete(RequestQueue queue,String id) throws Exception {
+    public static boolean delete(RequestQueue queue,String accountEmail,String courseId) throws Exception {
 
         String baseUrl = Configuration.baseUrl+serviceSuffix;
 
         RequestFuture<String> future = RequestFuture.newFuture();
-        StringRequest getRequest = new StringRequest(Request.Method.DELETE,baseUrl+"deleteRunThrough/"+id, future, future);
+        StringRequest getRequest = new StringRequest(Request.Method.DELETE,String.format(baseUrl+"deleteRunThrough/%s/%s",accountEmail,courseId), future, future);
         queue.add(getRequest);
         try {
             future.get(10000, TimeUnit.MILLISECONDS); // this will block
