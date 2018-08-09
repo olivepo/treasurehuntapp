@@ -1,5 +1,6 @@
 package com.example.treasurehuntapp.createhunt;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -42,6 +43,8 @@ import treasurehunt.model.StepCompositeFactory;
 import treasurehunt.model.StepLeaf;
 import treasurehunt.model.StepLeafFactory;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
+import treasurehunt.sqlite.CourseLite;
+import treasurehunt.sqlite.CourseLiteManager;
 
 
 public class NextStepActivity extends AppCompatActivity implements View.OnClickListener {
@@ -139,6 +142,20 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
         mCourseTask=new CreateCourseTask(courseInCreation);
         mCourseTask.execute();
+
+        //enregistrement dans la base sqlite
+        CourseLiteManager courseLiteManager = new CourseLiteManager(this);
+        courseLiteManager.open();
+
+        String courseString= null;
+        try {
+            courseString = mapper.writeValueAsString(courseInCreation);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        String id=courseInCreation.id;
+        CourseLite courseLite = new CourseLite(id,courseString);
+        courseLiteManager.addCourse(courseLite);
 
         startActivity(intent);
 
