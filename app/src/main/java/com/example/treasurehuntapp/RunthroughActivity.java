@@ -415,7 +415,7 @@ public class RunthroughActivity extends AppCompatActivity {
     }
 
     private void showEndedRunThroughInfo() {
-        stepDescription.setText(String.format("Parcours terminé !\n\nVotre score : %d",runThrough.getScore()));
+        stepDescription.setText(String.format("Parcours terminé !\n\nVotre score : %d",runThrough.getScore(course)));
         finishRunThrough.setVisibility(View.VISIBLE);
     }
 
