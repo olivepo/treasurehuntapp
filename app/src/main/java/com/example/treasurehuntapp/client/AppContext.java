@@ -17,7 +17,7 @@ import treasurehunt.model.StepComposite;
 public class AppContext {
 
     private static AppContext mInstance;
-    private static Context mCtx;
+    public static Context mCtx;
     private RequestQueue mRequestQueue;
     public Account account;
     public List<Course> nearestCourse;

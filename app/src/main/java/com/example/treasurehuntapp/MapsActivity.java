@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -55,8 +56,11 @@ import treasurehunt.client.Configuration;
 import treasurehunt.client.CourseRESTMethods;
 import treasurehunt.client.RunThroughRESTMethods;
 import treasurehunt.model.Course;
+import treasurehunt.model.Courses;
 import treasurehunt.model.RunThrough;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
+import treasurehunt.sqlite.CourseLite;
+import treasurehunt.sqlite.CourseLiteManager;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, GoogleMap.OnMarkerClickListener {
 
@@ -507,15 +511,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (success) {
                 appContext.nearestCourse = listCourses;
                 for (Course course : listCourses){
-
-                    LatLng courseLatLong = new LatLng(course.start.latitude, course.start.longitude);
-                    Marker marker = mMap.addMarker(new MarkerOptions()
-                            .position(courseLatLong)
-                            .title(course.name)
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.tresor))
-                            );
-                    markersCourse.put(marker.getId(),course);
+                    markCourse(course);
+                    putCourseToLocalSqlite(course);
                 }
+            }
+            else {
+                getCourseInLocalDb();
             }
         }
 
@@ -524,6 +525,54 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mNearestCourseTask = null;
           //  showProgress(false);
         }
+    }
+
+    private void markCourse(Course course) {
+        LatLng courseLatLong = new LatLng(course.start.latitude, course.start.longitude);
+        Marker marker = mMap.addMarker(new MarkerOptions()
+                .position(courseLatLong)
+                .title(course.name)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.tresor))
+                );
+        markersCourse.put(marker.getId(),course);
+    }
+
+    private void getCourseInLocalDb() {
+        CourseLiteManager courseLiteManager = new CourseLiteManager(appContext.mCtx);
+        courseLiteManager.open();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+        Cursor c = courseLiteManager.getCourses();
+        if (c.moveToFirst())        {
+            do {
+                   String courseString=c.getString(c.getColumnIndex(CourseLiteManager.KEY_STRING_COURSE));
+                try {
+                    Course course = mapper.readValue(courseString,Course.class);
+                    markCourse(course);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            while (c.moveToNext());
+        }
+
+        courseLiteManager.close();
+    }
+
+    private void putCourseToLocalSqlite(Course course) {
+        CourseLiteManager courseLiteManager = new CourseLiteManager(appContext.mCtx);
+        courseLiteManager.open();
+        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
+        String courseString= null;
+        try {
+            courseString = mapper.writeValueAsString(course);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        String id=course.id;
+        CourseLite courseLite = new CourseLite(id,courseString);
+        courseLiteManager.addCourse(courseLite);
+
+        courseLiteManager.close();
     }
 
     /**
