@@ -1,9 +1,7 @@
 package com.example.treasurehuntapp;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -13,7 +11,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.widget.Button;
@@ -49,6 +46,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -56,11 +54,9 @@ import treasurehunt.client.Configuration;
 import treasurehunt.client.CourseRESTMethods;
 import treasurehunt.client.RunThroughRESTMethods;
 import treasurehunt.model.Course;
-import treasurehunt.model.Courses;
 import treasurehunt.model.RunThrough;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
-import treasurehunt.sqlite.CourseLite;
-import treasurehunt.sqlite.CourseLiteManager;
+import treasurehunt.sqlite.*;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, GoogleMap.OnMarkerClickListener {
 
@@ -512,11 +508,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 appContext.nearestCourse = listCourses;
                 for (Course course : listCourses){
                     markCourse(course);
-                    putCourseToLocalSqlite(course);
+                    putCourseToLocalDb(course);
                 }
             }
             else {
-                getCourseInLocalDb();
+                getCoursesInLocalDb();
             }
         }
 
@@ -537,42 +533,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         markersCourse.put(marker.getId(),course);
     }
 
-    private void getCourseInLocalDb() {
-        CourseLiteManager courseLiteManager = new CourseLiteManager(appContext.mCtx);
-        courseLiteManager.open();
-        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
-        Cursor c = courseLiteManager.getCourses();
-        if (c.moveToFirst())        {
-            do {
-                   String courseString=c.getString(c.getColumnIndex(CourseLiteManager.KEY_STRING_COURSE));
-                try {
-                    Course course = mapper.readValue(courseString,Course.class);
-                    markCourse(course);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            while (c.moveToNext());
+    private void getCoursesInLocalDb() {
+        PersistenceManager persistenceManager = new PersistenceManager(appContext.mCtx);
+        ArrayList<PersistentObject<Course>> persistentObjectsList = persistenceManager.getObjects(new CoursePersistentFactory());
+        for(PersistentObject<Course> persistentCourse : persistentObjectsList) {
+            markCourse(persistentCourse.getObject());
         }
-
-        courseLiteManager.close();
     }
 
-    private void putCourseToLocalSqlite(Course course) {
-        CourseLiteManager courseLiteManager = new CourseLiteManager(appContext.mCtx);
-        courseLiteManager.open();
-        ObjectMapper mapper = JsonObjectMapperBuilder.buildJacksonObjectMapper();
-        String courseString= null;
-        try {
-            courseString = mapper.writeValueAsString(course);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        String id=course.id;
-        CourseLite courseLite = new CourseLite(id,courseString);
-        courseLiteManager.addCourse(courseLite);
-
-        courseLiteManager.close();
+    private void putCourseToLocalDb(Course course) {
+        PersistenceManager persistenceManager = new PersistenceManager(appContext.mCtx);
+        PersistentObject persistenceObject = new CoursePersistentFactory().makePersistentObject(course.id,course);
+        persistenceManager.insertObject(persistenceObject);
     }
 
     /**

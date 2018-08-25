@@ -1,6 +1,5 @@
 package com.example.treasurehuntapp.createhunt;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -9,9 +8,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.treasurehuntapp.MapsActivity;
@@ -19,32 +15,23 @@ import com.example.treasurehuntapp.R;
 import com.example.treasurehuntapp.client.AppContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-import Utils.DateUtils;
-import treasurehunt.client.Configuration;
 import treasurehunt.client.CourseRESTMethods;
 import treasurehunt.model.AnswerChoice;
 import treasurehunt.model.Course;
-import treasurehunt.model.CourseStepsIterator;
 import treasurehunt.model.Riddle;
-import treasurehunt.model.Step;
 import treasurehunt.model.StepComposite;
 import treasurehunt.model.StepCompositeFactory;
 import treasurehunt.model.StepLeaf;
 import treasurehunt.model.StepLeafFactory;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
-import treasurehunt.sqlite.CourseLite;
-import treasurehunt.sqlite.CourseLiteManager;
+import treasurehunt.sqlite.CoursePersistentFactory;
+import treasurehunt.sqlite.PersistentObject;
+import treasurehunt.sqlite.PersistenceManager;
 
 
 public class NextStepActivity extends AppCompatActivity implements View.OnClickListener {
@@ -145,28 +132,17 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
         mCourseTask.execute();
 
         //enregistrement dans la base sqlite
-        putToSqliteDb(mapper, courseInCreation);
+        putToSqliteDb(courseInCreation);
 
         startActivity(intent);
 
         finish();
     }
 
-    private void putToSqliteDb(ObjectMapper mapper, Course courseInCreation) {
-        CourseLiteManager courseLiteManager = new CourseLiteManager(this);
-        courseLiteManager.open();
+    private void putToSqliteDb(Course courseInCreation) {
+        PersistenceManager persistenceManager = new PersistenceManager(this);
+        persistenceManager.insertOrUpdateObject(new CoursePersistentFactory().makePersistentObject(courseInCreation.id,courseInCreation));
 
-        String courseString= null;
-        try {
-            courseString = mapper.writeValueAsString(courseInCreation);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        String id=courseInCreation.id;
-        CourseLite courseLite = new CourseLite(id,courseString);
-        courseLiteManager.addCourse(courseLite);
-
-        courseLiteManager.close();
     }
 
     private void nextStep(View view) {

@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MySQLite extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "db.sqlite";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static MySQLite sInstance;
 
     public static synchronized MySQLite getInstance(Context context) {
@@ -20,18 +20,29 @@ public class MySQLite extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onCreate(SQLiteDatabase sqLiteDatabase) {
+    public void onCreate(SQLiteDatabase sqLiteDataBase) {
         // Création de la base de données
         // on exécute ici les requêtes de création des tables
-        sqLiteDatabase.execSQL(CourseLiteManager.CREATE_TABLE_COURSE); // création table "COURSE"
+        createCourseTable(sqLiteDataBase);
+        createRunThroughTable(sqLiteDataBase);
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2) {
+    public void onUpgrade(SQLiteDatabase sqLiteDataBase, int oldVersion, int newVersion) {
         // Mise à jour de la base de données
         // méthode appelée sur incrémentation de DATABASE_VERSION
         // on peut faire ce qu'on veut ici, comme recréer la base :
-        onCreate(sqLiteDatabase);
+        if (newVersion >= 2 && oldVersion <= 1) {
+            createRunThroughTable(sqLiteDataBase);
+        }
+
     }
 
-} // class MySQLite
+    private void createCourseTable(SQLiteDatabase sqLiteDataBase) {
+        sqLiteDataBase.execSQL(new CoursePersistentFactory().makePersistentObject().getTableCreationQuery()); // création table "COURSE"
+    }
+
+    private void createRunThroughTable(SQLiteDatabase sqLiteDataBase) {
+        sqLiteDataBase.execSQL(new RunThroughPersistentFactory().makePersistentObject().getTableCreationQuery()); // création table "RUNTHROUGH"
+    }
+}

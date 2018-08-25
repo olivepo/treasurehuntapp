@@ -81,6 +81,14 @@
             android:label="@string/title_activity_runthrough"
             android:theme="@style/FullscreenTheme" />
         <activity android:name=".RiddleActivity"></activity>
+        <receiver
+            android:name="treasurehunt.sqlite.NetworkChangeReceiver"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

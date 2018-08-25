@@ -43,6 +43,8 @@ import treasurehunt.model.RunThrough;
 import treasurehunt.model.StepComposite;
 import treasurehunt.model.StepLeaf;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
+import treasurehunt.sqlite.PersistenceManager;
+import treasurehunt.sqlite.RunThroughPersistentFactory;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -124,6 +126,9 @@ public class RunthroughActivity extends AppCompatActivity {
     // données treasurehunt.model
     private Course course;
     private RunThrough runThrough = new RunThrough();
+
+    // gestion de la persistance
+    PersistenceManager persistenceManager = new PersistenceManager(RunthroughActivity.this);
 
     // service de localisation
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -445,7 +450,12 @@ public class RunthroughActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(final Boolean success) {
-            Toast.makeText(RunthroughActivity.this, "Données de parcours envoyées", Toast.LENGTH_LONG).show();
+            if (success) {
+                Toast.makeText(RunthroughActivity.this, "Données de parcours envoyées", Toast.LENGTH_LONG).show();
+            } else {
+                persistenceManager.insertOrUpdateObject(new RunThroughPersistentFactory()
+                        .makePersistentObject(runThroughToSend.getId(),runThroughToSend));
+            }
         }
 
         @Override
