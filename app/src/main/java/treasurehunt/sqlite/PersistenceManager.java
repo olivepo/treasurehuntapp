@@ -5,10 +5,12 @@ import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.widget.Toast;
 
 import com.example.treasurehuntapp.client.AppContext;
@@ -34,6 +36,11 @@ public class PersistenceManager {
         db = maBaseSQLite.getWritableDatabase();
         if (networkChangeReceiver == null) {
             networkChangeReceiver = new NetworkChangeReceiver();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                IntentFilter filter = new IntentFilter();
+                filter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+                context.registerReceiver(networkChangeReceiver, filter);
+            }
         }
     }
 
