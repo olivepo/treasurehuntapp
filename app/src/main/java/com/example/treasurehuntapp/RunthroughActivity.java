@@ -142,6 +142,8 @@ public class RunthroughActivity extends AppCompatActivity {
 
     private Button finishRunThrough;
 
+    private boolean seekingStartStep = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -212,10 +214,22 @@ public class RunthroughActivity extends AppCompatActivity {
                 for (Location location : locationResult.getLocations()) {
                     // dix mètres de proximité
                     Toast.makeText(RunthroughActivity.this,String.valueOf(location.distanceTo(buildCurrentStepLocation())),Toast.LENGTH_LONG);
-                    if (location.distanceTo(buildCurrentStepLocation()) <= 10){
+                    if (location.distanceTo(buildCurrentStepLocation()) <= 10) {
                         // demander à l'utilisateur la résolution de l'énigme et stopper l'abonnement au service de localisation
-                        stopLocationUpdates();
-                        showCurrentRiddleToUser();
+                        if (seekingStartStep) {
+                            seekingStartStep = false;
+                            // passer à l'étape suivante
+                            StepComposite currentStep = (StepComposite) runThrough.getCurrentStep();
+                            // ici il faut proposer le choix de l'étape à suivre
+                            runThrough.setCurrentStep(currentStep.getNextStep(currentStep.getNextStepsIds().iterator().next()));
+                            showCurrentStepInfo();
+                            // il faut enregistrer les données de parcours
+                            SendRunThroughTask sendTask = new SendRunThroughTask(runThrough);
+                            sendTask.execute();
+                        } else {
+                            stopLocationUpdates();
+                            showCurrentRiddleToUser();
+                        }
                     }
                 }
             }
