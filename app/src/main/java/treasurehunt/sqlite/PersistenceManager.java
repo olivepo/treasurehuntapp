@@ -1,26 +1,12 @@
 package treasurehunt.sqlite;
 
-import android.app.Application;
-import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Build;
-import android.widget.Toast;
-
-import com.example.treasurehuntapp.client.AppContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-
-import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 public class PersistenceManager {
 
@@ -54,6 +40,7 @@ public class PersistenceManager {
         // Ajout d'un enregistrement dans la table
 
         ContentValues values = new ContentValues();
+        values.put(po.idKeyName, po.id);
         values.put(po.serialisationKeyName, po.getObjectSerialisation());
 
         // insert() retourne l'id du nouvel enregistrement inséré, ou -1 en cas d'erreur
@@ -65,6 +52,7 @@ public class PersistenceManager {
         // valeur de retour : (int) nombre de lignes affectées par la requête
 
         ContentValues values = new ContentValues();
+        values.put(po.idKeyName, po.id);
         values.put(po.serialisationKeyName, po.getObjectSerialisation());
 
         String where = po.idKeyName+" = ?";
@@ -77,7 +65,7 @@ public class PersistenceManager {
         // suppression d'un enregistrement
         // valeur de retour : (int) nombre de lignes affectées par la clause WHERE, 0 sinon
 
-        String where = lpo.serialisationKeyName+" = ?";
+        String where = lpo.idKeyName+" = ?";
         String[] whereArgs = {lpo.id+""};
 
         return db.delete(lpo.tableName, where, whereArgs);
@@ -120,6 +108,14 @@ public class PersistenceManager {
         }
 
         return result;
+    }
+
+    public void dropTable(PersistentObject po) {
+        db.execSQL(po.getDropTableQuery());
+    }
+
+    public void createTable(PersistentObject po) {
+        db.execSQL(po.getTableCreationQuery());
     }
 
 }

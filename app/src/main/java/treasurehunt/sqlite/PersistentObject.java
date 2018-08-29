@@ -2,10 +2,7 @@ package treasurehunt.sqlite;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
-
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 
 public class PersistentObject<T> {
@@ -58,5 +55,9 @@ public class PersistentObject<T> {
     public String getSelectAllRecordsQuery() {
         return String.format("SELECT * FROM %s;",
                 tableName);
+    }
+
+    public String getDropTableQuery() {
+        return String.format("DROP TABLE %s",tableName);
     }
 }

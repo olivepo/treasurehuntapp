@@ -348,8 +348,8 @@ public class RunthroughActivity extends AppCompatActivity {
     }
 
     protected LocationRequest createLocationRequest() {
-        mLocationRequest.setInterval(7000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setInterval(2000);
+        mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return mLocationRequest;
     }
