@@ -55,7 +55,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
             ArrayList<PersistentObject<Course>> courseList = pm.getObjects(new CoursePersistentFactory());
             for (PersistentObject<Course> coursePO : courseList) {
                 try {
-                    if (CourseRESTMethods.put(appContext.getRequestQueue(),coursePO.getObject())) {
+                    if (coursePO.toUpdate && CourseRESTMethods.put(appContext.getRequestQueue(),coursePO.getObject())) {
                         pm.deleteObject(coursePO);
                     }
                 } catch (Exception e) {
@@ -66,7 +66,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
             ArrayList<PersistentObject<RunThrough>> runThroughList = pm.getObjects(new RunThroughPersistentFactory());
             for (PersistentObject<RunThrough> runThroughPO : runThroughList) {
                 try {
-                    if (RunThroughRESTMethods.put(appContext.getRequestQueue(),runThroughPO.getObject())) {
+                    if (runThroughPO.toUpdate && RunThroughRESTMethods.put(appContext.getRequestQueue(),runThroughPO.getObject())) {
                         pm.deleteObject(runThroughPO);
                     }
                 } catch (Exception e) {

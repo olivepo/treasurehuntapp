@@ -41,6 +41,7 @@ public class PersistenceManager {
 
         ContentValues values = new ContentValues();
         values.put(po.idKeyName, po.id);
+        values.put(po.toUpdateKeyName,po.toUpdate);
         values.put(po.serialisationKeyName, po.getObjectSerialisation());
 
         // insert() retourne l'id du nouvel enregistrement inséré, ou -1 en cas d'erreur
@@ -53,6 +54,7 @@ public class PersistenceManager {
 
         ContentValues values = new ContentValues();
         values.put(po.idKeyName, po.id);
+        values.put(po.toUpdateKeyName,po.toUpdate);
         values.put(po.serialisationKeyName, po.getObjectSerialisation());
 
         String where = po.idKeyName+" = ?";
@@ -77,6 +79,7 @@ public class PersistenceManager {
         Cursor c = db.rawQuery(po.getSelectRecordQuery(), null);
         if (c.moveToFirst()) {
             po.setObject(c.getString(c.getColumnIndex(po.serialisationKeyName)));
+            po.toUpdate = (0 != c.getInt(c.getColumnIndex(po.toUpdateKeyName)));
             c.close();
             return true;
         } else {
@@ -102,6 +105,7 @@ public class PersistenceManager {
             do {
                     currentObject = factory.makePersistentObject(c.getString(c.getColumnIndex(referenceObject.idKeyName)),
                             c.getString(c.getColumnIndex(referenceObject.serialisationKeyName)));
+                    currentObject.toUpdate = (0 != c.getInt(c.getColumnIndex(referenceObject.toUpdateKeyName)));
                     result.add(currentObject);
             }
             while (c.moveToNext());

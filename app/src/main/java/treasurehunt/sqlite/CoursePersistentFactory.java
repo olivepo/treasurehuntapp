@@ -12,6 +12,7 @@ public class CoursePersistentFactory implements PersistentObjectFactory {
         PersistentObject<Course> result = new PersistentObject<Course>();
         result.tableName = "courseLite";
         result.idKeyName = "id_course";
+        result.toUpdateKeyName = "uptd_course";
         result.serialisationKeyName = "string_course";
         return result;
     }

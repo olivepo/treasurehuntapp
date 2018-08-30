@@ -12,6 +12,7 @@ public class RunThroughPersistentFactory implements PersistentObjectFactory {
         PersistentObject<RunThrough> result = new PersistentObject<RunThrough>();
         result.tableName = "runThroughLite";
         result.idKeyName = "id_runthrough";
+        result.toUpdateKeyName = "uptd_runthrough";
         result.serialisationKeyName = "string_runthrough";
         return result;
     }

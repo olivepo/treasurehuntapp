@@ -544,7 +544,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void putCourseToLocalDb(Course course) {
         PersistenceManager persistenceManager = new PersistenceManager(appContext.mCtx);
         PersistentObject persistenceObject = new CoursePersistentFactory().makePersistentObject(course.id,course);
-        persistenceManager.insertObject(persistenceObject);
+        persistenceManager.insertOrUpdateObject(persistenceObject);
     }
 
     /**

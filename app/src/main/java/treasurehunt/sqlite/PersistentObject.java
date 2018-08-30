@@ -11,7 +11,9 @@ public class PersistentObject<T> {
     private T object;
     public String tableName;
     public String idKeyName;
+    public String toUpdateKeyName;
     public String serialisationKeyName;
+    public boolean toUpdate = false;
 
     public T getObject() {
         return object;
@@ -39,10 +41,11 @@ public class PersistentObject<T> {
     }
 
     public String getTableCreationQuery() {
-        return String.format("CREATE TABLE %s ( %s TEXT primary key, %s TEXT);",
+        return String.format("CREATE TABLE %s ( %s TEXT primary key, %s TEXT, %s INTEGER);",
                 tableName,
                 idKeyName,
-                serialisationKeyName);
+                serialisationKeyName,
+                toUpdateKeyName);
     }
 
     public String getSelectRecordQuery() {

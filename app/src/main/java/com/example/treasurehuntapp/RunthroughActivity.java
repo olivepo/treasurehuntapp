@@ -44,6 +44,7 @@ import treasurehunt.model.StepComposite;
 import treasurehunt.model.StepLeaf;
 import treasurehunt.model.marshalling.JsonObjectMapperBuilder;
 import treasurehunt.sqlite.PersistenceManager;
+import treasurehunt.sqlite.PersistentObject;
 import treasurehunt.sqlite.RunThroughPersistentFactory;
 
 /**
@@ -467,8 +468,9 @@ public class RunthroughActivity extends AppCompatActivity {
             if (success) {
                 Toast.makeText(RunthroughActivity.this, "Données de parcours envoyées", Toast.LENGTH_LONG).show();
             } else {
-                persistenceManager.insertOrUpdateObject(new RunThroughPersistentFactory()
-                        .makePersistentObject(runThroughToSend.getId(),runThroughToSend));
+                PersistentObject<RunThrough> runThroughPO = new RunThroughPersistentFactory().makePersistentObject(runThroughToSend.getId(),runThroughToSend);
+                runThroughPO.toUpdate = true;
+                persistenceManager.insertOrUpdateObject(runThroughPO);
             }
         }
 

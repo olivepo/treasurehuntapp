@@ -141,7 +141,9 @@ public class NextStepActivity extends AppCompatActivity implements View.OnClickL
 
     private void putToSqliteDb(Course courseInCreation) {
         PersistenceManager persistenceManager = new PersistenceManager(this);
-        persistenceManager.insertOrUpdateObject(new CoursePersistentFactory().makePersistentObject(courseInCreation.id,courseInCreation));
+        PersistentObject<Course> coursePO = new CoursePersistentFactory().makePersistentObject(courseInCreation.id,courseInCreation);
+        coursePO.toUpdate = true;
+        persistenceManager.insertOrUpdateObject(coursePO);
 
     }
 
