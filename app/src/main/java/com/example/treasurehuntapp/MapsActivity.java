@@ -243,8 +243,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     protected LocationRequest createLocationRequest() {
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setInterval(2000);
+        mLocationRequest.setFastestInterval(1000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return mLocationRequest;
     }
